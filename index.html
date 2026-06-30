@@ -818,7 +818,7 @@ const OWNERS=['Zlata','Rainers','Mārtiņš','Jurģis','Ben','Raimonds'];
 function getOwners(id){
   if(store.owners[id]) return store.owners[id];
   const raw=allOps().find(o=>o.id===id)?.owner||'';
-  return raw?raw.split(',').map(s=>s.trim()).filter(Boolean):[];
+  return raw.split(',').map(s=>s.trim()).filter(s=>OWNERS.includes(s));
 }
 function getOpStatus(id){
   if(store.opStatus.hasOwnProperty(id)) return store.opStatus[id];
