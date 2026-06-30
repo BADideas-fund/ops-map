@@ -1692,13 +1692,33 @@ function openDetail(id){
   }
   refreshDeadlineBox();
 
+  function regenerateCalForOp(){
+    const freq=document.getElementById('dp-freq').value;
+    const dateStr=document.getElementById('dp-date').value;
+    const opName=getName(id);
+    // Remove existing calCustom entries that belong to this op
+    store.calCustom=store.calCustom.filter(c=>!c.name.toLowerCase().startsWith(opName.toLowerCase()));
+    if(dateStr&&freq&&FREQ_RRULE[freq]){
+      const rrule=FREQ_RRULE[freq];
+      const cat=allOps().find(op=>op.id===id)?.cat||'team';
+      generateDates(dateStr,rrule).forEach(d=>{
+        store.calCustom.push({name:opName,date:d,audience:'Internal',cat,notes:freq,status:''});
+      });
+    } else if(dateStr){
+      const cat=allOps().find(op=>op.id===id)?.cat||'team';
+      store.calCustom.push({name:opName,date:dateStr,audience:'Internal',cat,notes:freq,status:''});
+    }
+  }
+
   document.getElementById('dp-freq').addEventListener('change',e=>{
     store.opFreq[id]=e.target.value;
+    regenerateCalForOp();
     save(); refreshDeadlineBox();
   });
   document.getElementById('dp-date').addEventListener('change',e=>{
     if(e.target.value) store.opDate[id]=e.target.value;
     else delete store.opDate[id];
+    regenerateCalForOp();
     save(); refreshDeadlineBox();
   });
   document.getElementById('dp-pri-btns').querySelectorAll('.dp-pribtn').forEach(btn=>{
