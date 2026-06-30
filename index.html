@@ -56,20 +56,20 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 .prof-legend{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
 .pl-l{font-size:10.5px;color:var(--text2);margin-right:4px;text-transform:uppercase;letter-spacing:.03em;font-family:'Inter',-apple-system,sans-serif}
 .pl-c{font-size:10px;font-weight:600;padding:3px 8px;border:1px solid}
-.ops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:10px}
+.ops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
 .ocard{background:var(--surface);border:1px solid var(--border);border-left-width:4px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .12s}
 .ocard:hover{box-shadow:0 2px 12px rgba(12,20,32,.09)}
-.oc-top{padding:12px 14px 10px;display:flex;flex-direction:column;gap:7px;flex:1}
+.oc-top{padding:16px 18px 12px;display:flex;flex-direction:column;gap:9px;flex:1}
 .oc-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.oc-name{font-size:13px;font-weight:600;line-height:1.35;flex:1}
+.oc-name{font-size:14px;font-weight:600;line-height:1.4;flex:1}
 .pchip{font-size:9px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 6px;flex-shrink:0;margin-top:1px}
 .pH{background:#FEE2E2;color:#B91C1C}.pM{background:#FEF3C7;color:#92400E}.pL{background:#F3F4F6;color:#6B7280}
-.oc-desc{font-size:11.5px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.oc-desc{font-size:12px;color:var(--text2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .oc-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .ocfreq{font-size:11px;background:var(--bg);color:var(--text2);padding:2px 6px}
 .occat{font-family:'Inter',-apple-system,sans-serif;font-size:9px;letter-spacing:.03em;text-transform:uppercase;font-weight:700}
 .ocown{font-size:11px;color:var(--text2)}
-.oc-ft{border-top:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.oc-ft{border-top:1px solid var(--border);padding:9px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .stag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:2px 7px}
 .sdone{background:#D1FAE5;color:#065F46}.sprog{background:#DBEAFE;color:#1E3A8A}.sblok{background:#FEE2E2;color:#991B1B}
 .op-stbtn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;padding:3px 8px;border:1px solid;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s;user-select:none}
@@ -709,13 +709,13 @@ const CAL=[
   {name:'Investment usage review per AML',          date:'2026-07-01',audience:'Internal',   cat:'compliance', status:'',     notes:'Annually'},
   {name:'CFLA atskaite (Q2 2026)',                  date:'2026-07-10',audience:'Altum, CFLA',cat:'compliance', status:'',     notes:'Rainers leads, Zlata checks'},
   {name:'Quarter Report to LPs (Q2)',               date:'2026-07-30',audience:'LPs',        cat:'lp',         status:'In progress', notes:'30 days after Q2 end'},
-  {name:'LB Quarterly Fund report (Q2)',            date:'2026-07-20',audience:'BoL',        cat:'compliance', status:'',     notes:'Rainers submits'},
+  {name:'Latvijas Banka quarterly report (Q2)',      date:'2026-07-20',audience:'BoL',        cat:'compliance', status:'',     notes:'Rainers submits'},
   {name:'LB ESMA / EVTI report',                   date:'2026-07-31',audience:'BoL',        cat:'compliance', status:'',     notes:'Semi-annual'},
   {name:'AML initial assessment',                   date:'2026-08-07',audience:'Internal',   cat:'compliance', status:'',     notes:'18 months after policy approval'},
   {name:'Mgt Fee Drawdown notice (Q3)',             date:'2026-09-30',audience:'LPs',        cat:'lp',         status:'',     notes:'14 business days before payment'},
   {name:'High risk country risk update',            date:'2026-09-05',audience:'Internal',   cat:'compliance', status:'',     notes:'Biannually'},
   {name:'Operational Financial Report (Q3)',        date:'2026-10-10',audience:'LPs',        cat:'lp',         status:'',     notes:'Within 10 days of quarter end'},
-  {name:'LB Quarterly Fund report (Q3)',            date:'2026-10-20',audience:'BoL',        cat:'compliance', status:'',     notes:'Rainers submits'},
+  {name:'Latvijas Banka quarterly report (Q3)',      date:'2026-10-20',audience:'BoL',        cat:'compliance', status:'',     notes:'Rainers submits'},
   {name:'Quarter Report to LPs (Q3)',               date:'2026-10-30',audience:'LPs',        cat:'lp',         status:'',     notes:'30 days after Q3 end'},
   {name:'LB ESMA / EVTI report',                   date:'2026-10-31',audience:'BoL',        cat:'compliance', status:'',     notes:'Quarterly'},
   {name:'PortCo investor check policy review',      date:'2026-11-08',audience:'Internal',   cat:'compliance', status:'Annual',notes:'Annually'},
@@ -968,7 +968,7 @@ function renderCal(){
       let urg='';
       if(days>=0&&days<=14) urg=`<span class="cal-urg urg-now">${days===0?'TODAY':days+'d'}</span>`;
       else if(days>14&&days<=30) urg=`<span class="cal-urg urg-soon">${days}d</span>`;
-      const matchedOp=allOps().find(o=>getName(o.id).toLowerCase()===item.name.toLowerCase());
+      const matchedOp=allOps().find(o=>item.name.toLowerCase().startsWith(getName(o.id).toLowerCase()));
       const pastCls=days<0?' cal-past':'';
       html+=`<div class="cal-row${pastCls}" data-key="${item._key}">
         <div class="cal-d-btn">${dayStr}</div>
@@ -1007,7 +1007,8 @@ function renderCal(){
     if(act==='opencal'){
       const item=allCal.find(x=>x._key===key);
       if(!item) return;
-      const matchedOp=allOps().find(o=>getName(o.id).toLowerCase()===(store.calNames[key]||item.name).toLowerCase());
+      const calName=(store.calNames[key]||item.name).toLowerCase();
+      const matchedOp=allOps().find(o=>calName.startsWith(getName(o.id).toLowerCase()));
       if(matchedOp){ openDetail(matchedOp.id); return; }
       openCalDetail(key, allCal);
     }
