@@ -659,9 +659,9 @@ const PS={
 };
 
 const OPS=[
-  {id:1, cat:'finance', op:'Monthly closing', freq:'Monthly (by 10th)', owner:'Zlata', priority:'High', status:'',
+  {id:1, cat:'finance', op:'Monthly closing', freq:'Monthly (by 5th)', owner:'Zlata', priority:'High', status:'',
    desc:'Download bank statements for all fund entities — Bad Company, BIFI, all deposit accounts, and BITBOX. Match every transaction against the budget file, locate all corresponding receipts and invoices, and confirm everything is accounted for. Must be completed by the 10th of each month.'},
-  {id:2, cat:'finance', op:'Monthly budget files', freq:'Monthly (by 15th)', owner:'Zlata', priority:'Medium', status:'',
+  {id:2, cat:'finance', op:'Monthly budget files', freq:'Monthly (by 5th)', owner:'Zlata', priority:'Medium', status:'',
    desc:'Update the budget tracking files for Bad Company and BIFI separately, reflecting actual spending to date and forecasting costs for the coming period. Flag any unexpected charges, anomalies, or overspend. Ensure the total account balance stays above €15k — the minimum required by fund regulations.'},
   {id:3, cat:'finance', op:'Invoice & payment management', freq:'Monthly', owner:'Zlata', priority:'Medium', status:'',
    desc:'Pay all invoices on behalf of the fund — covering accounting services, software and tool subscriptions, office costs, and any other supplier invoices from Bad Company or BITBOX. Also includes Launchpad mentor invoices: when a mentor completes an engagement, receive their invoice, verify the amount against agreed terms in Airtable, and process payment. Confirm all invoices are billed to the correct fund email and keep a record of each payment for accounting.'},
@@ -677,21 +677,19 @@ const OPS=[
    desc:'Manage the annual audit process for BADideas OÜ. Provide the external auditor with all required financial and investment records. Prepare a clear and defensible valuation methodology for the portfolio with supporting evidence. Respond to any auditor queries promptly.'},
   {id:10,cat:'finance', op:'Portfolio valuation (IPEV)', freq:'Monthly + on new rounds', owner:'Zlata', priority:'High', status:'',
    desc:'Each month — and whenever a portfolio company closes a new funding round — update the valuations of all fund investments using the IPEV (International Private Equity and Venture Capital) methodology. Collect KPI data from startups, apply the agreed valuation approach, update the balance sheet, document the rationale for each company\'s valuation, and communicate any changes to the accountant.'},
+  {id:68,cat:'finance', op:'BIFI annual report', freq:'Annual (February)', owner:'Zlata', priority:'High', status:'',
+   desc:'Coordinate the preparation and submission of the annual report for BIFI. This involves preparing portfolio valuation documentation, sharing all required financial data with the accountant, coordinating with the external audit firm, and ensuring the report is reviewed, audited, signed off and filed by the February deadline. The report must reflect all fund activity, investment positions, and financial statements for the prior calendar year.'},
+  {id:69,cat:'finance', op:'BIFI audit', freq:'Annual', owner:'Zlata', priority:'High', status:'',
+   desc:'Coordinate with the fund\'s external auditors to complete the annual BIFI audit. Provide investment data, portfolio valuation methodology documentation, and all other materials the auditors require. This is a regulatory requirement for the fund\'s continued authorisation to operate and must be completed alongside the BIFI annual report by the end of February.'},
 
   {id:11,cat:'lp', op:'Advance drawdown notice', freq:'Quarterly (2 wks before)', owner:'Zlata', priority:'High', status:'',
    desc:'Two weeks before each quarterly capital call, send a personal "heads up" email to each LP individually to give them time to prepare the funds. These are sent one by one — not as a group email — so each LP receives a message addressed to them personally.'},
   {id:12,cat:'lp', op:'Quarterly drawdown + payment tracking', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
    desc:'Calculate the exact amount each LP owes for the quarter based on their commitment percentage. Prepare the official PDF drawdown notice for each LP, send it individually (with the accountant copied), then monitor which LPs have paid. Follow up directly and personally with any LP who is late.'},
-  {id:13,cat:'lp', op:'LP Report — Executive Summary', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
-   desc:'Write the narrative introduction to the quarterly LP report — an overview of the fund\'s quarter covering key investments made, portfolio highlights, team updates, and strategic context. Align the key messages with the fund manager before writing. The report must be sent within 30 days of each quarter end.'},
-  {id:14,cat:'lp', op:'LP Report — Fund Activities', freq:'Quarterly', owner:'Zlata', priority:'Medium', status:'',
-   desc:'Write the Fund Activities section of the quarterly report, documenting team appearances, events attended, conferences, partnerships, and other notable milestones from the quarter. Include relevant photos where available.'},
-  {id:15,cat:'lp', op:'LP Report — Deal flow section review', freq:'Quarterly', owner:'Zlata (reviews)', priority:'Medium', status:'',
-   desc:'The investment team prepares the deal flow slides each quarter. Zlata reviews them before the report is finalised to ensure the data is accurate, the framing is consistent with the fund\'s narrative, and there are no errors or outdated figures.'},
-  {id:16,cat:'lp', op:'LP Report — Portfolio company updates', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
-   desc:'The most hands-on part of the quarterly LP report. Steps: (1) Request KPI and performance updates from all portfolio companies — chase via WhatsApp for any that don\'t respond. (2) Schedule a call with Ben to align on what we\'re saying about each company — agree on the narrative, flag any sensitive situations, and decide how to frame companies that are struggling. (3) Write or review the update text for each portfolio company, making sure it\'s accurate, honest, and investor-appropriate. (4) Check the latest quarterly reports and financials from each company. (5) Run an AI-assisted consistency check across all company texts for tone and factual accuracy. (6) Write a short section on how the fund performed this quarter overall — portfolio as a whole, any major developments, what\'s coming next.'},
-  {id:17,cat:'lp', op:'LP Report — Assembly & send', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
-   desc:'Bring all completed sections of the quarterly report together — executive summary, fund activities, deal flow overview, and portfolio company updates. Complete a final proofread, ensure formatting is consistent, and send the finished report to all LPs individually via email.'},
+  {id:13,cat:'lp', op:'LP Q Report', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
+   desc:'The full quarterly LP report process — due within 30 days of each quarter end. Complete all steps in order:\n\n1. EXECUTIVE SUMMARY — Write the narrative introduction: an overview of the fund\'s quarter covering key investments made, portfolio highlights, team updates, and strategic context. Align the key messages with the fund manager (Ben) before writing.\n\n2. FUND ACTIVITIES — Write the Fund Activities section documenting team appearances, events attended, conferences, partnerships, and other notable milestones from the quarter. Include relevant photos where available.\n\n3. DEAL FLOW SECTION — Review the deal flow slides prepared by the investment team. Ensure the data is accurate, framing is consistent with the fund\'s narrative, and there are no errors or outdated figures.\n\n4. LP ALIGNMENT CALL WITH BEN — Before writing portfolio updates, schedule a call with Ben to align on what we\'re saying about each company. Agree on the narrative, flag any sensitive situations, and decide how to frame companies that are struggling or pivoting.\n\n5. PORTFOLIO COMPANY UPDATES — The most hands-on section. Steps: (a) Request KPI and performance updates from all portfolio companies — chase via WhatsApp for any that don\'t respond. (b) Write or review the update text for each portfolio company, making sure it\'s accurate, honest, and investor-appropriate. (c) Check the latest quarterly reports and financials from each company. (d) Run an AI-assisted consistency check across all company texts for tone and factual accuracy. (e) Write a short section on how the fund performed this quarter overall — portfolio as a whole, any major developments, what\'s coming next.\n\n6. ASSEMBLY & SEND — Bring all completed sections together. Complete a final proofread, ensure formatting is consistent throughout, and send the finished report to all LPs individually via email — never as a group send.'},
+  {id:70,cat:'lp', op:'LP alignment call with Ben', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
+   desc:'Quarterly call with Ben to align on portfolio company updates before the LP report is written. Agree on the narrative for each company, flag any sensitive situations, and decide how to frame companies that are struggling or pivoting. This call must happen before step 5 of the LP Q Report process. Also used to align on any fund-level messages, tone, and strategic framing for the executive summary.'},
   {id:18,cat:'lp', op:'Investment model maintenance', freq:'Quarterly or on pace change', owner:'Zlata', priority:'Medium', status:'',
    desc:'Keep the fund\'s investment model up to date, reflecting the current pace of investments and cash deployment. This model is the basis for future drawdown forecasts and LP projections. Update it whenever the investment pace changes significantly, or at minimum once per quarter.'},
   {id:19,cat:'lp', op:'LP individual queries', freq:'Ad hoc', owner:'Zlata', priority:'High', status:'',
@@ -775,6 +773,8 @@ const OPS=[
    desc:'When a portfolio company in the syndicate opens a new follow-on funding round, proactively notify existing syndicate investors about the opportunity to invest again. Send personalised deal announcements via email to relevant investors.'},
   {id:56,cat:'syndicate', op:'Syndicate decision timeline review', freq:'—', owner:'Zlata', priority:'Low', status:'',
    desc:'Review and document the decision timeline for each syndicate round — from initial investor commitment to final round close. This helps identify patterns, improve future round management, and provides a useful reference for new deals. A working spreadsheet already exists and needs to be kept current.'},
+  {id:71,cat:'syndicate', op:'Syndicate portfolio valuation (IPEV)', freq:'Annual (March)', owner:'Zlata', priority:'High', status:'',
+   desc:'Once a year — and whenever a syndicate portfolio company closes a new funding round — update the valuations of all syndicate investments using the IPEV (International Private Equity and Venture Capital) methodology. Steps: (1) Collect KPI data and latest financials from each syndicate portfolio company. (2) Apply the agreed valuation approach for each company (last round pricing, revenue multiple, or other IPEV-compliant method). (3) Update the syndicate balance sheet and investment schedules. (4) Document the rationale for each company\'s valuation in writing. (5) Communicate any material changes to the accountant. (6) Ensure the valuation is ready before the annual report deadline in March.'},
 
   {id:57,cat:'team', op:'Team weekly standups', freq:'Weekly', owner:'Zlata', priority:'High', status:'',
    desc:'Attend the weekly all-team standup meeting. Meeting notes are automatically generated and distributed after the session. Review the notes and follow up on any action items assigned during the meeting to ensure they are completed before the next standup.'},
@@ -853,19 +853,29 @@ const CAL=[
   {name:'Dividend payout (Q2)',                     date:'2026-07-31',audience:'Internal',   cat:'finance',    status:'',     notes:'Ieva prepares profit figure → board decision → pay + taxes → notify Ben & Artis'},
   {name:'Dividend payout (Q3)',                     date:'2026-10-31',audience:'Internal',   cat:'finance',    status:'',     notes:'Ieva prepares profit figure → board decision → pay + taxes → notify Ben & Artis'},
   {name:'Dividend payout (Q4)',                     date:'2027-01-31',audience:'Internal',   cat:'finance',    status:'',     notes:'Ieva prepares profit figure → board decision → pay + taxes → notify Ben & Artis'},
+  // BIFI annual report & audit
+  {name:'BIFI annual report',                       date:'2027-02-28',audience:'Internal',   cat:'finance',    status:'',     notes:'Annual — Feb deadline; audited report for BIFI'},
+  {name:'BIFI audit',                               date:'2027-02-28',audience:'Internal',   cat:'finance',    status:'',     notes:'Annual — alongside BIFI annual report'},
+  // Syndicate portfolio valuation
+  {name:'Syndicate portfolio valuation (IPEV)',     date:'2027-03-31',audience:'Internal',   cat:'syndicate',  status:'',     notes:'Annual — March; IPEV methodology'},
+  // LP alignment call with Ben — 12th of first month of each quarter
+  {name:'LP alignment call with Ben',               date:'2026-07-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
+  {name:'LP alignment call with Ben',               date:'2026-10-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
+  {name:'LP alignment call with Ben',               date:'2027-01-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
+  {name:'LP alignment call with Ben',               date:'2027-04-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
   // Monthly recurring — Finance
-  {name:'Monthly closing',    date:'2026-07-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
-  {name:'Monthly budget files',date:'2026-07-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
-  {name:'Monthly closing',    date:'2026-08-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
-  {name:'Monthly budget files',date:'2026-08-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
-  {name:'Monthly closing',    date:'2026-09-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
-  {name:'Monthly budget files',date:'2026-09-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
-  {name:'Monthly closing',    date:'2026-10-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
-  {name:'Monthly budget files',date:'2026-10-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
-  {name:'Monthly closing',    date:'2026-11-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
-  {name:'Monthly budget files',date:'2026-11-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
-  {name:'Monthly closing',    date:'2026-12-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
-  {name:'Monthly budget files',date:'2026-12-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-07-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-07-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-08-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-08-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-09-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-09-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-10-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-10-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-11-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-11-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-12-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-12-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
   // Portfolio KPI monthly
   {name:'Portfolio KPI updates',date:'2026-07-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
   {name:'Portfolio KPI updates',date:'2026-08-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
@@ -893,6 +903,8 @@ if(!store.calProf)    store.calProf={};    // {key: string} — cal item profici
 if(!store.calNames)   store.calNames={};   // {key: string} — cal item name overrides
 if(!store.calCat)     store.calCat={};     // {key: string} — cal item category overrides
 if(!store.hidden)     store.hidden=[];     // [id, ...] — built-in ops hidden by user
+// Hide LP sub-ops consolidated into LP Q Report (id:13) — ids 14,15,16,17
+[14,15,16,17].forEach(id=>{if(!store.hidden.includes(id))store.hidden.push(id);});
 if(!store.owners)     store.owners={};    // {id: ['Zlata', ...]} — owner overrides
 if(!store.opFreq)     store.opFreq={};    // {id: string} — frequency overrides
 if(!store.opDate)     store.opDate={};    // {id: 'YYYY-MM-DD'} — next deadline date overrides
@@ -1049,83 +1061,172 @@ function renderDash(){
   });
 }
 
-// VISUAL MAP (HUB-AND-SPOKE NETWORK)
+// VISUAL MAP — hub-and-spoke with dependencies, proficiency rings, urgency
 function renderVmap(){
   const el=document.getElementById('vmap-view');
   const all=allOps();
-  const W=1000,H=600;
-  const cx=W/2, cy=H/2;
+  const W=1060,H=640;
+  const cx=W/2,cy=H/2+10;
+
+  // Dependencies — directional arrows between categories
+  const DEPS=[
+    {from:'dealflow',to:'deals',     label:'sourcing'},
+    {from:'deals',   to:'portfolio', label:'closed deals'},
+    {from:'deals',   to:'compliance',label:'KYC / AML'},
+    {from:'deals',   to:'spv',       label:'SPV structures'},
+    {from:'portfolio',to:'lp',       label:'KPI data'},
+    {from:'portfolio',to:'finance',  label:'valuations'},
+    {from:'finance', to:'lp',        label:'financials'},
+    {from:'compliance',to:'finance', label:'regulatory'},
+    {from:'spv',     to:'syndicate', label:'vehicles'},
+    {from:'lp',      to:'team',      label:'reporting'},
+  ];
+
   const catKeys=Object.keys(CATS);
   const N=catKeys.length;
-  // Spoke lengths scaled by op count
   const counts=catKeys.map(k=>all.filter(o=>o.cat===k).length);
   const maxCount=Math.max(...counts,1);
-  const minR=140, maxR=240;
+  const minR=148,maxR=232;
+  const allCal=[...CAL,...store.calCustom];
+  const now=TODAY;
+  const in30=new Date(TODAY); in30.setDate(in30.getDate()+30);
 
-  let spokes='', nodes='', opDots='', labels='';
-
+  // Build node positions
+  const pos={};
   catKeys.forEach((key,i)=>{
-    const cat=CATS[key];
-    const ops=all.filter(o=>o.cat===key);
-    const count=ops.length;
-    const high=ops.filter(o=>getPriority(o.id)==='High').length;
+    const count=all.filter(o=>o.cat===key).length;
     const angle=(2*Math.PI*i/N)-Math.PI/2;
     const r=minR+(count/maxCount)*(maxR-minR);
-    const nx=cx+r*Math.cos(angle);
-    const ny=cy+r*Math.sin(angle);
-    const nodeR=14+count*1.4;
+    pos[key]={x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle),r:13+count*1.3,angle,radDist:r,color:CATS[key].color,count};
+  });
 
-    // Spoke line
-    spokes+=`<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${cat.color}" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="4 4"/>`;
+  // Proficiency arc helper — returns SVG path for a partial arc
+  function arcPath(cx,cy,r,startFrac,endFrac){
+    if(endFrac-startFrac<0.001) return '';
+    const a0=(startFrac*2*Math.PI)-Math.PI/2;
+    const a1=(endFrac*2*Math.PI)-Math.PI/2;
+    const x1=cx+r*Math.cos(a0),y1=cy+r*Math.sin(a0);
+    const x2=cx+r*Math.cos(a1),y2=cy+r*Math.sin(a1);
+    const large=endFrac-startFrac>0.5?1:0;
+    return `M${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2}`;
+  }
 
-    // Op dots along the spoke
-    ops.slice(0,Math.min(count,12)).forEach((_,j)=>{
-      const t=0.28+(j/(Math.max(count,1)+2))*0.55;
-      const dx=cx+r*t*Math.cos(angle);
-      const dy=cy+r*t*Math.sin(angle);
-      const isHigh=getPriority(_.id)==='High';
-      opDots+=`<circle cx="${dx}" cy="${dy}" r="${isHigh?5:3.5}" fill="${cat.color}" opacity="${isHigh?0.9:0.45}"/>`;
+  let defs=`<defs>
+    <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <polygon points="0 0, 7 3.5, 0 7" fill="rgba(100,116,139,0.6)"/>
+    </marker>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>`;
+
+  // Dependency arrows — curved bezier, offset perpendicular
+  let arrows='';
+  DEPS.forEach(({from,to,label})=>{
+    const a=pos[from],b=pos[to];
+    if(!a||!b) return;
+    // Midpoint + perpendicular offset for curve
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    const dx=b.x-a.x,dy=b.y-a.y;
+    const len=Math.sqrt(dx*dx+dy*dy)||1;
+    const ox=-dy/len*40,oy=dx/len*40; // curve outward
+    // Shorten endpoints to node edge
+    const shrinkA=a.r+4, shrinkB=b.r+10;
+    const ax2=a.x+(dx/len)*shrinkA, ay2=a.y+(dy/len)*shrinkA;
+    const bx2=b.x-(dx/len)*shrinkB, by2=b.y-(dy/len)*shrinkB;
+    arrows+=`<path d="M${ax2},${ay2} Q${mx+ox},${my+oy} ${bx2},${by2}" fill="none" stroke="rgba(100,116,139,0.4)" stroke-width="1.2" marker-end="url(#arr)"/>`;
+    // Dependency label on curve midpoint
+    const lx=mx+ox*0.6,ly=my+oy*0.6;
+    arrows+=`<text x="${lx}" y="${ly}" text-anchor="middle" font-size="8" fill="rgba(100,116,139,0.7)" font-family="Inter,system-ui,sans-serif">${label}</text>`;
+  });
+
+  // Spokes, dots, nodes, rings, labels
+  let spokes='',opDots='',rings='',nodes='',labels='';
+
+  catKeys.forEach(key=>{
+    const p=pos[key];
+    const cat=CATS[key];
+    const ops=all.filter(o=>o.cat===key);
+    const high=ops.filter(o=>getPriority(o.id)==='High').length;
+
+    // Proficiency breakdown
+    const profMap={'Mastered':0,'In progress':0,'Started':0,'Not started':0,'—':0};
+    ops.forEach(o=>{const pf=getProf(o.id);profMap[pf]=(profMap[pf]||0)+1;});
+    const total=ops.length||1;
+    const profColors={'Mastered':'#16A34A','In progress':'#2563EB','Started':'#D97706','Not started':'#DC2626','—':'#CBD5E1'};
+    const profOrder=['Mastered','In progress','Started','Not started','—'];
+    let cumFrac=0;
+    const ringR=p.r+7;
+    profOrder.forEach(pf=>{
+      const frac=profMap[pf]/total;
+      if(frac>0.005){
+        rings+=`<path d="${arcPath(p.x,p.y,ringR,cumFrac,cumFrac+frac)}" fill="none" stroke="${profColors[pf]}" stroke-width="4" stroke-linecap="round"/>`;
+        cumFrac+=frac;
+      }
     });
 
-    // Category node circle
+    // Urgency glow — deadline in next 30 days?
+    const hasUrgent=allCal.some(c=>c.cat===key&&c.date&&new Date(c.date)>=now&&new Date(c.date)<=in30);
+    if(hasUrgent){
+      nodes+=`<circle cx="${p.x}" cy="${p.y}" r="${p.r+14}" fill="${cat.color}" opacity="0.12" filter="url(#glow)"/>`;
+    }
+
+    // Spoke
+    spokes+=`<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="${cat.color}" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="3 5"/>`;
+
+    // Op dots along spoke (priority → size & opacity)
+    ops.slice(0,14).forEach((o,j)=>{
+      const t=0.26+(j/(Math.max(ops.length,1)+1))*0.58;
+      const dx2=cx+p.radDist*t*Math.cos(p.angle);
+      const dy2=cy+p.radDist*t*Math.sin(p.angle);
+      const pri=getPriority(o.id);
+      const r2=pri==='High'?5.5:pri==='Low'?2.5:3.5;
+      const op2=pri==='High'?0.9:pri==='Low'?0.35:0.6;
+      opDots+=`<circle cx="${dx2}" cy="${dy2}" r="${r2}" fill="${cat.color}" opacity="${op2}"/>`;
+    });
+
+    // Node
     nodes+=`<g class="vmap-cell" data-cat="${key}" style="cursor:pointer">
-      <circle cx="${nx}" cy="${ny}" r="${nodeR}" fill="${cat.color}" opacity="0.15"/>
-      <circle cx="${nx}" cy="${ny}" r="${nodeR}" fill="none" stroke="${cat.color}" stroke-width="2"/>
-      <text x="${nx}" y="${ny+1}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="${cat.color}" font-family="Inter,system-ui,sans-serif">${count}</text>
-      ${high>0?`<circle cx="${nx+nodeR*0.7}" cy="${ny-nodeR*0.7}" r="8" fill="#BE2424"/>
-      <text x="${nx+nodeR*0.7}" y="${ny-nodeR*0.7+1}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="800" fill="white" font-family="Inter,system-ui,sans-serif">${high}</text>`:''}
+      <circle cx="${p.x}" cy="${p.y}" r="${p.r}" fill="${cat.color}" opacity="0.13"/>
+      <circle cx="${p.x}" cy="${p.y}" r="${p.r}" fill="none" stroke="${cat.color}" stroke-width="2"/>
+      <text x="${p.x}" y="${p.y+1}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="800" fill="${cat.color}" font-family="Inter,system-ui,sans-serif">${p.count}</text>
+      ${high>0?`<circle cx="${p.x+p.r*0.72}" cy="${p.y-p.r*0.72}" r="7.5" fill="#BE2424"/>
+      <text x="${p.x+p.r*0.72}" y="${p.y-p.r*0.72+1}" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="800" fill="white" font-family="Inter,system-ui,sans-serif">${high}</text>`:''}
     </g>`;
 
-    // Label outside the node
-    const labelR=r+nodeR+14;
-    const lx=cx+labelR*Math.cos(angle);
-    const ly=cy+labelR*Math.sin(angle);
-    const anchor=Math.cos(angle)>0.1?'start':Math.cos(angle)<-0.1?'end':'middle';
-    const lines=cat.label.split(' & ');
+    // Label
+    const lrOff=p.r+16;
+    const lx=cx+(p.radDist+lrOff)*Math.cos(p.angle);
+    const ly=cy+(p.radDist+lrOff)*Math.sin(p.angle);
+    const anchor=Math.cos(p.angle)>0.15?'start':Math.cos(p.angle)<-0.15?'end':'middle';
+    const words=cat.label.split(' & ');
     labels+=`<g class="vmap-cell" data-cat="${key}" style="cursor:pointer">`;
-    lines.forEach((line,li)=>{
-      labels+=`<text x="${lx}" y="${ly+(li-(lines.length-1)/2)*14}" text-anchor="${anchor}" font-size="11" font-weight="600" fill="var(--text)" font-family="Inter,system-ui,sans-serif" opacity="0.8">${line}</text>`;
+    words.forEach((w,wi)=>{
+      labels+=`<text x="${lx}" y="${ly+(wi-(words.length-1)/2)*13}" text-anchor="${anchor}" font-size="10.5" font-weight="600" fill="var(--text)" font-family="Inter,system-ui,sans-serif">${w}</text>`;
     });
     labels+=`</g>`;
   });
 
-  // Center hub
+  // Hub
   const hub=`
-    <circle cx="${cx}" cy="${cy}" r="38" fill="var(--deep)"/>
-    <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="10" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif" letter-spacing="0.05em">BAD</text>
-    <text x="${cx}" y="${cy+7}" text-anchor="middle" font-size="10" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif" letter-spacing="0.05em">IDEAS</text>
-    <text x="${cx}" y="${cy+19}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.6)" font-family="Inter,system-ui,sans-serif">${all.length} ops</text>`;
+    <circle cx="${cx}" cy="${cy}" r="36" fill="var(--deep)"/>
+    <text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif" letter-spacing="0.06em">BAD IDEAS</text>
+    <text x="${cx}" y="${cy+8}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.55)" font-family="Inter,system-ui,sans-serif">${all.length} ops</text>`;
+
+  // Legend
+  const legend=`
+    <rect x="14" y="${H-78}" width="220" height="68" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+    <text x="24" y="${H-62}" font-size="8.5" font-weight="700" fill="var(--text2)" font-family="Inter,system-ui,sans-serif" letter-spacing="0.06em">LEGEND</text>
+    <circle cx="26" cy="${H-47}" r="4" fill="none" stroke="#16A34A" stroke-width="3"/>
+    <text x="36" y="${H-44}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">Proficiency ring (green=mastered → red=not started)</text>
+    <circle cx="26" cy="${H-32}" r="5" fill="#BE2424"/>
+    <text x="36" y="${H-29}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">High priority ops badge</text>
+    <circle cx="26" cy="${H-17}" r="6" fill="#2563EB" opacity="0.15" filter="url(#glow)"/>
+    <text x="36" y="${H-14}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">Glow = deadline within 30 days</text>`;
 
   el.innerHTML=`
-    <div style="margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <div style="font-size:12.5px;color:var(--text2)">Node size = distance from centre. Dots on spokes = individual operations. Red badge = high priority count.</div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;font-size:11.5px;color:var(--text2)">
-        <span style="display:flex;align-items:center;gap:4px"><circle style="width:8px;height:8px;border-radius:50%;background:#BE2424;display:inline-block"></circle> High priority</span>
-      </div>
-    </div>
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text2)">Click any node to explore that category. Arrows show work dependencies between areas.</div>
     <div id="vmap-canvas-wrap">
       <svg id="vmap-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        ${spokes}${opDots}${nodes}${labels}${hub}
+        ${defs}${spokes}${arrows}${opDots}${rings}${nodes}${labels}${hub}${legend}
       </svg>
     </div>`;
 
