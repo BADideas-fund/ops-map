@@ -777,6 +777,7 @@ if(!store.calDesc)    store.calDesc={};    // {key: string} — cal item descrip
 if(!store.calProf)    store.calProf={};    // {key: string} — cal item proficiency
 if(!store.calNames)   store.calNames={};   // {key: string} — cal item name overrides
 if(!store.hidden)     store.hidden=[];     // [id, ...] — built-in ops hidden by user
+if(!store.owners)     store.owners={};    // {id: ['Zlata', ...]} — owner overrides
 if(!store.priority)   store.priority={};   // {id: 'High'|'Medium'|'Low'} — priority overrides
 if(!store.opStatus)   store.opStatus={};   // {id: ''|'In progress'|'Done'} — op status overrides
 function save(){localStorage.setItem('badi_v2',JSON.stringify(store))}
@@ -789,6 +790,12 @@ function getName(id){return store.names[id]||allOps().find(o=>o.id===id)?.op||''
 function getDesc(id){const o=allOps().find(x=>x.id===id);return store.descs[id]||(o?o.desc:'')||''}
 function isCustom(id){return store.custom.some(o=>o.id===id)}
 function getPriority(id){return store.priority[id]||allOps().find(o=>o.id===id)?.priority||'Medium'}
+const OWNERS=['Zlata','Rainers','Mārtiņš','Jurģis','Ben','Raimonds'];
+function getOwners(id){
+  if(store.owners[id]) return store.owners[id];
+  const raw=allOps().find(o=>o.id===id)?.owner||'';
+  return raw?raw.split(',').map(s=>s.trim()).filter(Boolean):[];
+}
 function getOpStatus(id){
   if(store.opStatus.hasOwnProperty(id)) return store.opStatus[id];
   return allOps().find(o=>o.id===id)?.status||'';
@@ -891,7 +898,7 @@ function renderOps(){
         <div class="oc-meta">
           <span class="occat" style="color:${cat.color}">${cat.short}</span>
           ${o.freq!=='—'?`<span class="ocfreq">${o.freq}</span>`:''}
-          <span class="ocown">${o.owner}</span>
+          <span class="ocown">${getOwners(o.id).join(', ')||o.owner}</span>
         </div>
       </div>
       <div class="oc-ft">
@@ -1239,7 +1246,10 @@ function openDetail(id){
   fields.innerHTML=`
     ${dlBox}
     <div class="dp-field"><div class="dp-fl">Frequency</div><div class="dp-fv">${o.freq}</div></div>
-    <div class="dp-field"><div class="dp-fl">Owner</div><div class="dp-fv">${o.owner}</div></div>
+    <div class="dp-field" style="grid-column:1/-1">
+      <div class="dp-fl">Owner <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text2);margin-left:4px">(click to toggle)</span></div>
+      <div id="dp-owners" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px"></div>
+    </div>
     <div class="dp-field"><div class="dp-fl">Status</div><div class="dp-fv">${o.status||'—'}</div></div>
     <div class="dp-field" style="grid-column:1/-1">
       <div class="dp-fl">Priority <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;font-family:inherit;color:var(--text2);margin-left:4px">(click to change)</span></div>
@@ -1257,6 +1267,32 @@ function openDetail(id){
       if(view==='ops') renderOps();
     });
   });
+
+  // Owner chips
+  const ownersEl=document.getElementById('dp-owners');
+  function renderOwnerChips(){
+    const cur=getOwners(id);
+    ownersEl.innerHTML='';
+    OWNERS.forEach(name=>{
+      const active=cur.includes(name);
+      const b=document.createElement('button');
+      b.className='dp-pribtn'+(active?' active':'');
+      b.style.cssText=active?'background:#000;color:#EBFC78;border-color:#000':'';
+      b.textContent=name;
+      b.addEventListener('click',()=>{
+        const list=getOwners(id);
+        const idx=list.indexOf(name);
+        if(idx>=0) list.splice(idx,1); else list.push(name);
+        store.owners[id]=list;
+        save();
+        renderOwnerChips();
+        const card=document.querySelector(`.ocard[data-id="${id}"] .ocown`);
+        if(card) card.textContent=list.join(', ')||name;
+      });
+      ownersEl.appendChild(b);
+    });
+  }
+  renderOwnerChips();
 
   const descEl=document.getElementById('dp-desc');
   descEl.textContent=getDesc(id);
