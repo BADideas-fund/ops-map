@@ -8,7 +8,7 @@
   --bg:#EFEFEF;--surface:#FFFFFF;--deep:#000000;--text:#000000;--text2:#5A5A5A;--border:#D3D3D3;
   --accent:#EBFC78;--accent-text:#000000;
   --c-finance:#1E48C2;--c-lp:#6824D4;--c-deals:#BE2424;--c-compliance:#B8720E;
-  --c-portfolio:#18754C;--c-dealflow:#BE5410;--c-syndicate:#8227C4;--c-team:#127898;
+  --c-portfolio:#18754C;--c-dealflow:#BE5410;--c-syndicate:#8227C4;--c-spv:#5B2D8E;--c-team:#127898;
 }
 body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 
@@ -277,6 +277,7 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
             <option value="portfolio">Portfolio Monitoring</option>
             <option value="dealflow">Deal Flow & Sourcing</option>
             <option value="syndicate">Syndicate Operations</option>
+            <option value="spv">SPV Management</option>
             <option value="team" selected>Team & Admin</option>
           </select>
         </div>
@@ -570,6 +571,7 @@ const CATS={
   portfolio: {label:'Portfolio Monitoring',     short:'Portfolio',    color:'#18754C'},
   dealflow:  {label:'Deal Flow & Sourcing',     short:'Deal Flow',    color:'#BE5410'},
   syndicate: {label:'Syndicate Operations',     short:'Syndicate',    color:'#8227C4'},
+  spv:       {label:'SPV Management',           short:'SPV',          color:'#5B2D8E'},
   team:      {label:'Team & Admin',             short:'Team & Admin', color:'#127898'},
 };
 
@@ -685,15 +687,15 @@ const OPS=[
   {id:49,cat:'dealflow', op:'Platform / Supabase process doc', freq:'—', owner:'Zlata (ops section)', priority:'Medium', status:'In progress',
    desc:'Document the full operational workflow for the fund\'s internal platform from an operations perspective. Zlata covers the operations side; the compliance lead covers the regulatory side. The combined document feeds into the technical specification for building the system.'},
 
-  {id:50,cat:'syndicate', op:'SPV round management', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
+  {id:50,cat:'spv', op:'SPV round management', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
    desc:'When a new syndicate deal opens, manage the full round process: coordinate with the SPV administrator, run identity and business verification checks on syndicate investors, track all document signatures and incoming wire transfers, and keep investors informed throughout the process. The full operational playbook is documented separately.'},
   {id:51,cat:'syndicate', op:'Syndicate investor communications', freq:'Ad hoc', owner:'Zlata', priority:'High', status:'',
    desc:'Respond to incoming questions and requests from syndicate investors. Common enquiries include questions about exit timelines or valuations, requests for tax invoices or transaction documents, questions about portfolio company performance, and requests to sell or transfer their position in a company.'},
   {id:52,cat:'syndicate', op:'Syndicate exit management', freq:'Per exit', owner:'Zlata', priority:'High', status:'',
    desc:'When a syndicate investment is exited — through a secondary sale or company acquisition — coordinate the full exit process: agree on the final valuation, prepare and execute all required legal documents, arrange the wire transfer of proceeds to investors, and update all records in the CRM and investor portal.'},
-  {id:53,cat:'syndicate', op:'Syndicate annual audit', freq:'Annual', owner:'Zlata', priority:'Medium', status:'',
+  {id:53,cat:'spv', op:'SPV annual audit', freq:'Annual', owner:'Zlata', priority:'Medium', status:'',
    desc:'Once a year, review all SPV (Special Purpose Vehicle) records to ensure everything is in order. Cross-check the document archive against the database, confirm that all investor documents are present and correctly filed, and flag any gaps or inconsistencies that need to be resolved.'},
-  {id:54,cat:'syndicate', op:'Syndicate document cleanup', freq:'—', owner:'Zlata', priority:'Medium', status:'In progress',
+  {id:54,cat:'spv', op:'SPV document cleanup', freq:'—', owner:'Zlata', priority:'Medium', status:'In progress',
    desc:'An ongoing project to bring all historical syndicate documents into a clean, organised state. Involves downloading documents in bulk, matching them to the correct companies and investor records, ensuring all documents include the required legal disclaimers, and reconciling any outstanding deposit records.'},
   {id:55,cat:'syndicate', op:'Syndicate LP notifications (follow-on)', freq:'Per round', owner:'Zlata', priority:'Medium', status:'',
    desc:'When a portfolio company in the syndicate opens a new follow-on funding round, proactively notify existing syndicate investors about the opportunity to invest again. Send personalised deal announcements via email to relevant investors.'},
