@@ -379,27 +379,27 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
     <div class="op-cal-opts" id="op-cal-opts">
       <div class="op-cal-opt" id="op-cal-once-trigger">
         <div class="op-cal-opt-title">Add once</div>
-        <div class="op-cal-opt-sub">Download a single calendar event for a specific date — import into Google Calendar or any calendar app.</div>
+        <div class="op-cal-opt-sub">Add this operation as a single event on the calendar. You can edit the date there afterwards.</div>
         <div class="op-cal-once-form" id="op-cal-once-form">
           <div class="form-row" style="margin-bottom:10px;margin-top:12px">
             <label>Date</label>
             <input type="date" id="op-cal-once-date"/>
           </div>
           <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="add-btn primary" id="op-cal-once-save" style="font-size:12px">↓ Download .ics</button>
+            <button class="add-btn primary" id="op-cal-once-save" style="font-size:12px">+ Add to Calendar</button>
           </div>
         </div>
       </div>
       <div class="op-cal-opt" id="op-cal-recur-trigger" style="display:none">
         <div class="op-cal-opt-title">Add recurring</div>
-        <div class="op-cal-opt-sub" id="op-cal-recur-sub">Repeats automatically. Import once — your calendar app will add all future occurrences.</div>
+        <div class="op-cal-opt-sub" id="op-cal-recur-sub">Adds all occurrences for the next 12 months to the calendar at once.</div>
         <div class="op-cal-once-form" id="op-cal-recur-form">
           <div class="form-row" style="margin-bottom:10px;margin-top:12px">
             <label>Start date</label>
             <input type="date" id="op-cal-recur-date"/>
           </div>
           <div style="display:flex;gap:8px;margin-top:4px">
-            <button class="add-btn primary" id="op-cal-recur-save" style="font-size:12px">↓ Download recurring .ics</button>
+            <button class="add-btn primary" id="op-cal-recur-save" style="font-size:12px">+ Add recurring to Calendar</button>
           </div>
         </div>
       </div>
@@ -1314,33 +1314,55 @@ document.getElementById('op-cal-recur-trigger').addEventListener('click',e=>{
   document.getElementById('op-cal-once-form').classList.remove('open');
 });
 
-// generate ICS and download
-function downloadOpIcs(dateStr, rrule){
+// Generate future dates from a start date + rrule pattern (next 12 months)
+function generateDates(startStr, rrule){
+  const dates=[];
+  const start=new Date(startStr+'T12:00:00');
+  const end=new Date(start); end.setFullYear(end.getFullYear()+1);
+  const freq=(rrule.match(/FREQ=(\w+)/)||[])[1];
+  const interval=parseInt((rrule.match(/INTERVAL=(\d+)/)||[])[1]||'1');
+  const bymonthday=parseInt((rrule.match(/BYMONTHDAY=(\d+)/)||[])[1]||'0');
+  let cur=new Date(start);
+  while(cur<=end&&dates.length<60){
+    dates.push(toIsoDate(cur));
+    if(freq==='MONTHLY'){
+      cur=new Date(cur.getFullYear(),cur.getMonth()+interval,bymonthday||cur.getDate());
+    } else if(freq==='WEEKLY'){
+      cur=new Date(cur); cur.setDate(cur.getDate()+7*interval);
+    } else if(freq==='YEARLY'){
+      cur=new Date(cur); cur.setFullYear(cur.getFullYear()+1);
+    } else if(freq==='DAILY'){
+      cur=new Date(cur); cur.setDate(cur.getDate()+interval);
+    } else break;
+  }
+  return dates;
+}
+
+// Add operation to internal website calendar
+function addOpToInternalCal(dateStr, rrule){
   if(!opCalCurrentOp||!dateStr) return;
   const name=document.getElementById('op-cal-name').value.trim()||getName(opCalCurrentOp.id);
-  const d=new Date(dateStr+'T12:00:00');
-  const ds=toIcsDate(d);
-  const nd=new Date(d); nd.setDate(nd.getDate()+1);
-  const nds=toIcsDate(nd);
-  const uid='badi-op-'+opCalCurrentOp.id+'-'+ds+'@badideas.fund';
-  const catLabel=CATS[opCalCurrentOp.cat]?.label||opCalCurrentOp.cat;
-  const desc=getDesc(opCalCurrentOp.id).replace(/\n/g,'\\n').replace(/,/g,'\\,');
-  let vevent=`BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTART;VALUE=DATE:${ds}\r\nDTEND;VALUE=DATE:${nds}\r\nSUMMARY:${name.replace(/,/g,'\\,')}\r\nDESCRIPTION:${desc}\r\nCATEGORIES:${catLabel}\r\n`;
-  if(rrule) vevent+=`RRULE:${rrule}\r\n`;
-  vevent+=`END:VEVENT\r\n`;
-  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BADideas.fund//Ops Map//EN\r\n${vevent}END:VCALENDAR`;
-  const blob=new Blob([ics],{type:'text/calendar'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=name.slice(0,40).replace(/[^a-zA-Z0-9]/g,'_')+(rrule?'_recurring':'')+'.ics';
-  a.click();
+  const cat=opCalCurrentOp.cat;
+  const notes=opCalCurrentOp.freq!=='—'?opCalCurrentOp.freq:'';
+  if(rrule){
+    const dates=generateDates(dateStr, rrule);
+    dates.forEach(d=>{
+      store.calCustom.push({name,date:d,audience:'Internal',cat,notes,status:''});
+    });
+  } else {
+    store.calCustom.push({name,date:dateStr,audience:'Internal',cat,notes,status:''});
+  }
+  save();
   closeOpCalModal();
+  closeDetail();
+  switchView('cal');
 }
 
 document.getElementById('op-cal-once-save').addEventListener('click',()=>{
-  downloadOpIcs(document.getElementById('op-cal-once-date').value, null);
+  addOpToInternalCal(document.getElementById('op-cal-once-date').value, null);
 });
 document.getElementById('op-cal-recur-save').addEventListener('click',()=>{
-  downloadOpIcs(document.getElementById('op-cal-recur-date').value, opCalDeadline?.rrule||'FREQ=MONTHLY');
+  addOpToInternalCal(document.getElementById('op-cal-recur-date').value, opCalDeadline?.rrule||'FREQ=MONTHLY');
 });
 
 document.getElementById('dp-cal-btn').addEventListener('click',()=>{
