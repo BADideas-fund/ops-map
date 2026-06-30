@@ -1,0 +1,1402 @@
+
+<title>BADideas Operations Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EFEFEF;--surface:#FFFFFF;--deep:#000000;--text:#000000;--text2:#5A5A5A;--border:#D3D3D3;
+  --accent:#EBFC78;--accent-text:#000000;
+  --c-finance:#1E48C2;--c-lp:#6824D4;--c-deals:#BE2424;--c-compliance:#B8720E;
+  --c-portfolio:#18754C;--c-dealflow:#BE5410;--c-syndicate:#8227C4;--c-team:#127898;
+}
+body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* HEADER */
+.hd{background:var(--deep);padding:20px 40px 16px;display:flex;align-items:center;justify-content:space-between;gap:24px;position:sticky;top:0;z-index:50}
+.hd-left{display:flex;flex-direction:column;gap:3px}
+.hd-eye{font-family:'Courier New',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.32)}
+.hd-title{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.02em}
+.hd-stats{display:flex;gap:28px}
+.hd-stat{text-align:right}
+.hd-n{font-family:'Courier New',monospace;font-size:24px;font-weight:700;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
+.hd-l{font-size:9.5px;color:rgba(255,255,255,.32);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 40px;position:sticky;top:57px;z-index:40}
+.vtabs{display:flex;border-right:1px solid var(--border);margin-right:20px;flex-shrink:0}
+.vtab{padding:12px 16px;font-size:12.5px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;transition:color .12s,border-color .12s}
+.vtab:hover:not(.active){color:var(--text)}
+.vtab.active{color:var(--text);border-bottom-color:var(--deep);font-weight:700}
+.cpills{display:flex;gap:5px;flex-wrap:wrap;padding:8px 0;flex:1;align-items:center}
+.cpill{padding:3px 9px;font-size:11px;font-weight:500;border:1px solid var(--border);cursor:pointer;color:var(--text2);background:transparent;white-space:nowrap;font-family:inherit;transition:all .12s}
+.cpill:hover{border-color:#aaa;color:var(--text)}
+.cpill.active{color:#fff;border-color:transparent}
+.sbox{display:flex;align-items:center;gap:7px;padding-left:14px;border-left:1px solid var(--border);margin-left:8px;flex-shrink:0}
+.sbox input{border:none;outline:none;font-size:13px;color:var(--text);background:transparent;width:150px}
+.sbox input::placeholder{color:var(--text2)}
+
+/* MAP */
+#map-view{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.mtile{background:var(--surface);display:flex;flex-direction:column;cursor:pointer;transition:background .1s}
+.mtile:hover{background:#F6F8FF}
+.th{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.tlab{font-family:'Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.5;flex:1}
+.tcount{font-family:'Courier New',monospace;font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;flex-shrink:0}
+.tbody{padding:12px 18px;flex:1;display:flex;flex-direction:column;gap:5px}
+.top{font-size:12px;color:var(--text2);line-height:1.4;display:flex;align-items:flex-start;gap:7px}
+.tdot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tmore{font-size:11px;color:var(--text2);opacity:.55;margin-top:2px;padding-left:11px}
+.tft{border-top:1px solid var(--border);padding:8px 18px;display:flex;align-items:center;justify-content:space-between}
+.tftl{font-family:'Courier New',monospace;font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
+.thigh{font-family:'Courier New',monospace;font-size:10px;font-weight:700;padding:2px 6px;background:#FEE2E2;color:#B91C1C}
+
+/* OPS */
+#ops-view{padding:22px 40px 40px}
+.prof-legend{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.pl-l{font-size:10.5px;color:var(--text2);margin-right:4px;text-transform:uppercase;letter-spacing:.08em;font-family:'Courier New',monospace}
+.pl-c{font-size:10px;font-weight:600;padding:3px 8px;border:1px solid}
+.ops-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));gap:10px}
+.ocard{background:var(--surface);border:1px solid var(--border);border-left-width:4px;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .12s}
+.ocard:hover{box-shadow:0 2px 12px rgba(12,20,32,.09)}
+.oc-top{padding:12px 14px 10px;display:flex;flex-direction:column;gap:7px;flex:1}
+.oc-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.oc-name{font-size:13px;font-weight:600;line-height:1.35;flex:1}
+.pchip{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;flex-shrink:0;margin-top:1px}
+.pH{background:#FEE2E2;color:#B91C1C}.pM{background:#FEF3C7;color:#92400E}.pL{background:#F3F4F6;color:#6B7280}
+.oc-desc{font-size:11.5px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.oc-meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.ocfreq{font-size:11px;background:var(--bg);color:var(--text2);padding:2px 6px}
+.occat{font-family:'Courier New',monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
+.ocown{font-size:11px;color:var(--text2)}
+.oc-ft{border-top:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.stag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px}
+.sdone{background:#D1FAE5;color:#065F46}.sprog{background:#DBEAFE;color:#1E3A8A}.sblok{background:#FEE2E2;color:#991B1B}
+.pbtn{font-size:10.5px;font-weight:600;padding:3px 8px;cursor:pointer;border:1px solid;white-space:nowrap;transition:opacity .1s;font-family:inherit}
+.pbtn:hover{opacity:.8}
+.no-r{grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text2)}
+.add-btn{font-size:12px;font-weight:600;padding:6px 14px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;transition:all .12s;flex-shrink:0}
+.add-btn:hover{background:var(--bg)}
+.add-btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+.add-btn.primary:hover{filter:brightness(.95)}
+.ops-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+/* ADD MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(12,20,32,.4);z-index:300;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;border:1px solid var(--border)}
+.modal-hd{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:700}
+.modal-body{padding:22px}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.form-row input,.form-row select,.form-row textarea{width:100%;border:1px solid var(--border);padding:8px 10px;font-size:13px;font-family:inherit;color:var(--text);outline:none;background:var(--surface);transition:border-color .12s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#9CA3AF}
+.form-row textarea{min-height:80px;resize:vertical}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-ft{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.custom-badge{font-size:9px;font-weight:700;padding:1px 5px;background:#EEF2FF;color:#3730A3;margin-left:5px;font-family:'Courier New',monospace;letter-spacing:.06em;text-transform:uppercase}
+.delete-btn{font-size:11px;color:#B91C1C;cursor:pointer;background:none;border:none;font-family:inherit;padding:0;margin-top:8px;text-decoration:underline}
+
+/* CALENDAR */
+#cal-view{padding:22px 40px 40px}
+.cal-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cal-title{font-family:'Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text2)}
+.ics-btn{font-size:11.5px;font-weight:600;padding:5px 13px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;transition:all .12s}
+.ics-btn:hover{background:var(--bg)}
+.cal-month{margin-bottom:28px}
+.cal-mhd{font-family:'Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:2px}
+.cal-row{display:flex;align-items:flex-start;gap:12px;padding:9px 8px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.cal-row:hover{background:#F6F8FF}
+.cal-d{font-family:'Courier New',monospace;font-size:12px;font-weight:700;width:34px;flex-shrink:0;padding-top:1px}
+.cal-stripe{width:3px;align-self:stretch;min-height:18px;flex-shrink:0;margin-top:3px}
+.cal-body{flex:1;min-width:0}
+.cal-name{font-size:13px;font-weight:500;line-height:1.35}
+.cal-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.cal-urg{font-family:'Courier New',monospace;font-size:9px;font-weight:700;padding:2px 6px;text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;margin-top:2px}
+.urg-now{background:#FEE2E2;color:#B91C1C}
+.urg-soon{background:#FEF3C7;color:#92400E}
+.cal-empty{color:var(--text2);font-size:13px;padding:12px 8px}
+.cal-add{font-size:10.5px;font-weight:600;padding:3px 9px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .12s}
+.cal-add:hover{background:var(--bg);border-color:#aaa;color:var(--text)}
+.cal-d-btn{font-family:'Courier New',monospace;font-size:12px;font-weight:700;width:44px;flex-shrink:0;padding-top:1px;cursor:pointer;background:none;border:none;text-align:left;color:var(--text);padding:2px 4px;border-radius:2px;transition:background .1s;line-height:1.4}
+.cal-d-btn:hover{background:var(--bg)}
+.cal-past .cal-d-btn{color:var(--text2)}
+.cal-past{opacity:.52}
+.cal-status-btn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:3px 8px;border:1px solid;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .12s;user-select:none}
+.cst-none{background:#F9FAFB;color:#9CA3AF;border-color:#E5E7EB}
+.cst-none:hover{background:#F3F4F6;border-color:#D1D5DB;color:#6B7280}
+.cst-prog{background:#DBEAFE;color:#1E3A8A;border-color:#BFDBFE}
+.cst-prog:hover{background:#BFDBFE}
+.cst-done{background:#D1FAE5;color:#065F46;border-color:#A7F3D0}
+.cst-done:hover{background:#A7F3D0}
+.cal-date-picker{position:fixed;z-index:600;border:1px solid #9CA3AF;padding:6px 8px;font-size:13px;font-family:inherit;background:#fff;box-shadow:0 4px 16px rgba(12,20,32,.15);outline:none}
+
+/* DETAIL PANEL */
+.dovlay{position:fixed;inset:0;background:rgba(12,20,32,.35);z-index:190;display:none}
+.dovlay.open{display:block}
+.dpanel{position:fixed;top:0;right:-460px;width:460px;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:200;display:flex;flex-direction:column;transition:right .22s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.dpanel.open{right:0}
+.dp-hd{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.dp-badge{font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px}
+.dp-actions{display:flex;align-items:center;gap:8px}
+.dp-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;transition:background .12s}
+.dp-close:hover{background:var(--bg)}
+.dp-body{flex:1;overflow-y:auto;padding:20px}
+.dp-name-wrap{margin-bottom:16px}
+.dp-name{font-size:17px;font-weight:700;line-height:1.3;color:var(--text);cursor:text;padding:2px 0;border-bottom:2px solid transparent;transition:border-color .12s;outline:none}
+.dp-name:focus{border-bottom-color:var(--text)}
+.dp-name-hint{font-size:10.5px;color:var(--text2);margin-top:4px;font-style:italic}
+.dp-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.dp-field{background:var(--bg);padding:9px 12px}
+.dp-fl{font-family:'Courier New',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:4px}
+.dp-fv{font-size:12.5px;font-weight:500;line-height:1.3}
+.dp-section{font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.dp-desc-text{font-size:13px;line-height:1.65;color:var(--text);min-height:60px;padding:8px 10px;border:1px solid transparent;outline:none;width:100%;transition:border-color .12s}
+.dp-desc-text:focus{border-color:#9CA3AF;background:#FAFBFC}
+.dp-notes{width:100%;min-height:110px;border:1px solid var(--border);padding:10px 12px;font-size:13px;line-height:1.6;font-family:inherit;color:var(--text);resize:vertical;outline:none;background:var(--surface);transition:border-color .12s}
+.dp-notes:focus{border-color:#9CA3AF}
+.dp-notes::placeholder{color:var(--text2);font-style:italic}
+.dp-save-hint{font-size:10.5px;color:var(--text2);margin-top:5px;font-style:italic}
+.dp-prof-grid{display:flex;flex-wrap:wrap;gap:6px}
+.dp-pbtn{font-size:11px;font-weight:600;padding:5px 12px;border:1px solid;cursor:pointer;font-family:inherit;transition:opacity .1s}
+.dp-pbtn:hover{opacity:.8}
+.dp-pbtn.active{outline:2px solid var(--text);outline-offset:2px}
+.hidden{display:none!important}
+/* PRIORITY SELECTOR */
+.dp-pri-grid{display:flex;gap:6px;flex-wrap:wrap}
+.dp-pribtn{font-size:11px;font-weight:700;padding:5px 14px;border:1px solid;cursor:pointer;font-family:inherit;letter-spacing:.04em;text-transform:uppercase;transition:all .12s}
+.dp-pribtn:hover{opacity:.8}
+.dp-pribtn.active{outline:2px solid #000;outline-offset:2px}
+.priH{background:#FEE2E2;color:#B91C1C;border-color:#FECACA}
+.priM{background:#FEF3C7;color:#92400E;border-color:#FDE68A}
+.priL{background:#F3F4F6;color:#6B7280;border-color:#E5E7EB}
+/* CAL OP LINK */
+.cal-op-link{font-size:10px;font-weight:600;color:var(--text2);cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:all .1s;margin-top:2px;display:inline-block;font-family:'Courier New',monospace;letter-spacing:.06em;text-transform:uppercase}
+.cal-op-link:hover{color:var(--text);text-decoration-color:var(--text)}
+/* OP CALENDAR MODAL */
+.op-cal-modal-bg{position:fixed;inset:0;background:rgba(12,20,32,.4);z-index:400;display:none;align-items:center;justify-content:center}
+.op-cal-modal-bg.open{display:flex}
+.op-cal-modal{background:var(--surface);width:420px;max-width:95vw;border:1px solid var(--border);padding:0}
+.op-cal-opts{display:flex;flex-direction:column;gap:0}
+.op-cal-opt{padding:18px 22px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.op-cal-opt:last-child{border-bottom:none}
+.op-cal-opt:hover{background:var(--bg)}
+.op-cal-opt-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.op-cal-opt-sub{font-size:12px;color:var(--text2);line-height:1.4}
+.dp-cal-btn{font-size:11px;font-weight:600;padding:5px 11px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;transition:background .12s;white-space:nowrap}
+.dp-cal-btn:hover{background:var(--bg)}
+.dp-deadline-box{background:#EEF2FF;border:1px solid #C7D2FE;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dp-deadline-label{font-family:'Courier New',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#3730A3;margin-bottom:3px}
+.dp-deadline-val{font-size:13px;font-weight:600;color:#1E1B4B}
+.dp-deadline-freq{font-size:11px;color:#6366F1;margin-top:1px}
+.op-cal-once-form{padding:18px 22px;border-top:1px solid var(--border);display:none}
+.op-cal-once-form.open{display:block}
+
+@media(max-width:1200px){#map-view{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){
+  .hd,.nav,#ops-view,#cal-view{padding-left:20px;padding-right:20px}
+  #map-view{grid-template-columns:1fr}
+  .hd-stats{display:none}
+  .dpanel{width:100%;right:-100%}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<!-- Overlay + Detail Panel -->
+<div id="dovlay" class="dovlay"></div>
+<div id="dpanel" class="dpanel">
+  <div class="dp-hd">
+    <span class="dp-badge" id="dp-badge"></span>
+    <div class="dp-actions">
+      <button class="dp-cal-btn" id="dp-cal-btn" title="Add this operation to your calendar">+ Calendar</button>
+      <button class="dp-close" id="dp-close">✕</button>
+    </div>
+  </div>
+  <div class="dp-body">
+    <div class="dp-name-wrap">
+      <div class="dp-name" id="dp-name" contenteditable="true" spellcheck="false"></div>
+      <div class="dp-name-hint">Double-click to edit name — saves automatically</div>
+    </div>
+    <div class="dp-fields" id="dp-fields"></div>
+    <div class="dp-section">Description <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;font-family:inherit;color:var(--text2);margin-left:6px">(click to edit)</span></div>
+    <div class="dp-desc-text" id="dp-desc" contenteditable="true" spellcheck="false"></div>
+    <div class="dp-section">Personal Notes</div>
+    <textarea class="dp-notes" id="dp-notes" placeholder="Write anything here — saved automatically to this browser…"></textarea>
+    <div class="dp-save-hint" id="dp-saved"></div>
+    <div class="dp-section">Proficiency</div>
+    <div class="dp-prof-grid" id="dp-prof"></div>
+  </div>
+</div>
+
+<!-- ADD OPERATION MODAL -->
+<div class="modal-bg" id="add-op-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">New Operation</div>
+      <button class="dp-close" id="add-op-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Operation Name *</label>
+        <input type="text" id="new-op-name" placeholder="e.g. Monthly token reconciliation"/>
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Category *</label>
+          <select id="new-op-cat">
+            <option value="finance">Finance & Accounting</option>
+            <option value="lp">LP Relations & Reporting</option>
+            <option value="deals">Investment Deals</option>
+            <option value="compliance">Compliance & Regulatory</option>
+            <option value="portfolio">Portfolio Monitoring</option>
+            <option value="dealflow">Deal Flow & Sourcing</option>
+            <option value="syndicate">Syndicate Operations</option>
+            <option value="team" selected>Team & Admin</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Priority</label>
+          <select id="new-op-pri">
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Frequency</label>
+          <input type="text" id="new-op-freq" placeholder="e.g. Weekly, Monthly, Ad hoc"/>
+        </div>
+        <div class="form-row">
+          <label>Owner</label>
+          <input type="text" id="new-op-owner" placeholder="e.g. Zlata" value="Zlata"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Description / Subtasks</label>
+        <textarea id="new-op-desc" placeholder="What does this involve? Any key steps or notes…"></textarea>
+      </div>
+      <div class="form-row">
+        <label>Status</label>
+        <select id="new-op-status">
+          <option value="">Active</option>
+          <option value="In progress">In progress</option>
+          <option value="Done">Done</option>
+          <option value="Blocked">Blocked</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="add-btn" id="add-op-cancel">Cancel</button>
+      <button class="add-btn primary" id="add-op-save">Add Operation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CALENDAR EVENT MODAL -->
+<div class="modal-bg" id="add-cal-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">New Calendar Event</div>
+      <button class="dp-close" id="add-cal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Event Name *</label>
+        <input type="text" id="new-cal-name" placeholder="e.g. BoL annual filing deadline"/>
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Date *</label>
+          <input type="date" id="new-cal-date"/>
+        </div>
+        <div class="form-row">
+          <label>Category</label>
+          <select id="new-cal-cat">
+            <option value="compliance">Compliance & Regulatory</option>
+            <option value="lp">LP Relations</option>
+            <option value="finance">Finance</option>
+            <option value="deals">Investment Deals</option>
+            <option value="portfolio">Portfolio</option>
+            <option value="team">Team & Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Audience / Recipient</label>
+        <input type="text" id="new-cal-audience" placeholder="e.g. BoL, LPs, Internal"/>
+      </div>
+      <div class="form-row">
+        <label>Notes</label>
+        <input type="text" id="new-cal-notes" placeholder="e.g. Rainers leads, Zlata checks"/>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="add-btn" id="add-cal-cancel">Cancel</button>
+      <button class="add-btn primary" id="add-cal-save">Add to Calendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- OP → CALENDAR MODAL -->
+<div class="op-cal-modal-bg" id="op-cal-modal">
+  <div class="op-cal-modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="op-cal-modal-title">Add to Calendar</div>
+      <button class="dp-close" id="op-cal-close">✕</button>
+    </div>
+    <div style="padding:18px 22px 10px">
+      <div id="op-cal-deadline-preview"></div>
+      <div class="form-row" style="margin-bottom:8px">
+        <label>Event name</label>
+        <input type="text" id="op-cal-name"/>
+      </div>
+    </div>
+    <div class="op-cal-opts" id="op-cal-opts">
+      <div class="op-cal-opt" id="op-cal-once-trigger">
+        <div class="op-cal-opt-title">Add once</div>
+        <div class="op-cal-opt-sub">Download a single calendar event for a specific date — import into Google Calendar or any calendar app.</div>
+        <div class="op-cal-once-form" id="op-cal-once-form">
+          <div class="form-row" style="margin-bottom:10px;margin-top:12px">
+            <label>Date</label>
+            <input type="date" id="op-cal-once-date"/>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="add-btn primary" id="op-cal-once-save" style="font-size:12px">↓ Download .ics</button>
+          </div>
+        </div>
+      </div>
+      <div class="op-cal-opt" id="op-cal-recur-trigger" style="display:none">
+        <div class="op-cal-opt-title">Add recurring</div>
+        <div class="op-cal-opt-sub" id="op-cal-recur-sub">Repeats automatically. Import once — your calendar app will add all future occurrences.</div>
+        <div class="op-cal-once-form" id="op-cal-recur-form">
+          <div class="form-row" style="margin-bottom:10px;margin-top:12px">
+            <label>Start date</label>
+            <input type="date" id="op-cal-recur-date"/>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="add-btn primary" id="op-cal-recur-save" style="font-size:12px">↓ Download recurring .ics</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="hd">
+  <div class="hd-left">
+    <div class="hd-eye">BADideas.fund · Internal · 2026</div>
+    <div class="hd-title">Operations World Map</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+    <div style="display:flex;gap:8px">
+      <button id="sync-btn" style="font-size:12px;font-weight:700;padding:7px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);cursor:pointer;font-family:inherit;letter-spacing:.01em">☁ Sync</button>
+      <button id="save-btn" style="font-size:12px;font-weight:700;padding:7px 16px;background:var(--accent);color:#000;border:none;cursor:pointer;font-family:inherit;letter-spacing:.01em">↓ Save to file</button>
+    </div>
+    <span id="save-hint" style="font-size:10px;color:rgba(255,255,255,.5);font-family:'Courier New',monospace"></span>
+  </div>
+  <div class="hd-stats">
+    <div class="hd-stat"><div class="hd-n" id="sTotal">67</div><div class="hd-l">Operations</div></div>
+    <div class="hd-stat"><div class="hd-n" id="sHigh">—</div><div class="hd-l">High Priority</div></div>
+    <div class="hd-stat"><div class="hd-n" id="sDeadlines">—</div><div class="hd-l">Upcoming Deadlines</div></div>
+    <div class="hd-stat"><div class="hd-n" id="sRated">0/67</div><div class="hd-l">Proficiency Set</div></div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="vtabs">
+    <button class="vtab active" data-view="map">Map Overview</button>
+    <button class="vtab" data-view="ops">All Operations</button>
+    <button class="vtab" data-view="cal">Compliance Calendar</button>
+  </div>
+  <div class="cpills" id="cpills"></div>
+  <div class="sbox">
+    <svg width="13" height="13" fill="none" stroke="#717D97" stroke-width="1.8" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M11 11l3 3"/></svg>
+    <input type="text" id="search" placeholder="Search…" autocomplete="off"/>
+  </div>
+</div>
+
+<div id="map-view"></div>
+<div id="ops-view" class="hidden"></div>
+<div id="cal-view" class="hidden"></div>
+
+<script>
+// JSONBIN SYNC
+const JBIN_ID  = '6a43652df5f4af5e2945d7b3';
+const JBIN_KEY = '$2a$10$Jh89FPjNxAvRNMr5Df6RNuiVSYJzLj2FQUjZ.w/tDg8O/dE0Hl5Fe';
+const JBIN_URL = 'https://api.jsonbin.io/v3/b/'+JBIN_ID;
+
+function syncHint(msg,col){
+  const el=document.getElementById('save-hint');
+  el.textContent=msg; el.style.color=col||'rgba(255,255,255,.5)';
+  if(col) setTimeout(()=>{el.style.color='rgba(255,255,255,.5)';},3000);
+}
+
+async function pushToCloud(){
+  const btn=document.getElementById('sync-btn');
+  btn.textContent='☁ Syncing…'; btn.disabled=true;
+  try{
+    const res=await fetch(JBIN_URL,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY},
+      body:JSON.stringify(store)
+    });
+    if(!res.ok) throw new Error(res.status);
+    syncHint('Synced to cloud ✓','#EBFC78');
+    btn.textContent='☁ Sync';
+  }catch(e){
+    syncHint('Sync failed — check internet','#FCA5A5');
+    btn.textContent='☁ Sync';
+  }
+  btn.disabled=false;
+}
+
+async function pullFromCloud(){
+  try{
+    const res=await fetch(JBIN_URL+'/latest',{
+      headers:{'X-Master-Key':JBIN_KEY,'X-Bin-Meta':false}
+    });
+    if(!res.ok) return;
+    const data=await res.json();
+    const remote=data.record||data;
+    // Merge remote into store — remote wins for all keys
+    if(remote&&typeof remote==='object'&&Object.keys(remote).length>0){
+      Object.assign(store,remote);
+      if(!store.prof)      store.prof={};
+      if(!store.notes)     store.notes={};
+      if(!store.names)     store.names={};
+      if(!store.descs)     store.descs={};
+      if(!store.custom)    store.custom=[];
+      if(!store.calCustom) store.calCustom=[];
+      if(!store.calStatus) store.calStatus={};
+      if(!store.calDate)   store.calDate={};
+      if(!store.priority)  store.priority={};
+      save();
+      renderMap(); renderOps(); renderCal(); updateStats();
+      syncHint('Loaded latest from cloud','rgba(255,255,255,.5)');
+    }
+  }catch(e){/* offline — use localStorage silently */}
+}
+
+document.getElementById('sync-btn').addEventListener('click', pushToCloud);
+
+// Pull from cloud on load
+window.addEventListener('load', pullFromCloud);
+
+const CATS={
+  finance:   {label:'Finance & Accounting',     short:'Finance',      color:'#1E48C2'},
+  lp:        {label:'LP Relations & Reporting', short:'LP Relations', color:'#6824D4'},
+  deals:     {label:'Investment Deals',         short:'Inv. Deals',   color:'#BE2424'},
+  compliance:{label:'Compliance & Regulatory',  short:'Compliance',   color:'#B8720E'},
+  portfolio: {label:'Portfolio Monitoring',     short:'Portfolio',    color:'#18754C'},
+  dealflow:  {label:'Deal Flow & Sourcing',     short:'Deal Flow',    color:'#BE5410'},
+  syndicate: {label:'Syndicate Operations',     short:'Syndicate',    color:'#8227C4'},
+  team:      {label:'Team & Admin',             short:'Team & Admin', color:'#127898'},
+};
+
+const PC=['—','Expert','WIP','Amateur','Untouched'];
+const PS={
+  '—':        {bg:'#F8F9FC',color:'#9CA3AF',bd:'#E2E5EF'},
+  'Expert':   {bg:'#D1FAE5',color:'#065F46',bd:'#6EE7B7'},
+  'WIP':      {bg:'#DBEAFE',color:'#1E3A8A',bd:'#93C5FD'},
+  'Amateur':  {bg:'#FEF3C7',color:'#78350F',bd:'#FCD34D'},
+  'Untouched':{bg:'#FEE2E2',color:'#991B1B',bd:'#FCA5A5'},
+};
+
+const OPS=[
+  {id:1, cat:'finance', op:'Monthly closing', freq:'Monthly (by 10th)', owner:'Zlata', priority:'High', status:'',
+   desc:'Download bank statements for all fund entities — Bad Company, BIFI, all deposit accounts, and BITBOX. Match every transaction against the budget file, locate all corresponding receipts and invoices, and confirm everything is accounted for. Must be completed by the 10th of each month.'},
+  {id:2, cat:'finance', op:'Monthly budget files', freq:'Monthly (by 15th)', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Update the budget tracking files for Bad Company and BIFI separately, reflecting actual spending to date and forecasting costs for the coming period. Flag any unexpected charges, anomalies, or overspend. Ensure the total account balance stays above €15k — the minimum required by fund regulations.'},
+  {id:3, cat:'finance', op:'Invoice & payment management', freq:'Monthly', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Pay all invoices on behalf of the fund — covering accounting services, software and tool subscriptions, office costs, and any other supplier invoices from Bad Company or BITBOX. Also includes Launchpad mentor invoices: when a mentor completes an engagement, receive their invoice, verify the amount against agreed terms in Airtable, and process payment. Confirm all invoices are billed to the correct fund email and keep a record of each payment for accounting.'},
+  {id:5, cat:'finance', op:'Bank account monitoring', freq:'Ongoing', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Monitor all fund bank accounts — Swedbank, Wise, and any other active accounts — for expected inflows and outflows. Inflows to track include LP capital call payments, loan repayments from portfolio companies, Launchpad programme fees, exit and secondary sale proceeds, and supplier or customer payments. Confirm each expected payment has arrived on time. Follow up directly if anything is late or missing. Flag any unexpected transactions for review.'},
+  {id:6, cat:'finance', op:'Supplier reconciliation acts', freq:'As requested', owner:'Zlata', priority:'Low', status:'',
+   desc:'Occasionally suppliers request a formal balance reconciliation — a document where both parties confirm what has been invoiced, paid, and what (if anything) remains outstanding. Review the supplier\'s version against internal records, prepare the fund\'s response, and get it signed off.'},
+  {id:7, cat:'finance', op:'Accountant coordination (Robby & Bobby)', freq:'Quarterly + ad hoc', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Regularly send updated financial data — balance sheet, profit & loss statements — to the fund\'s Estonian accountants. Answer their questions, provide any additional documentation they need, and coordinate the timing of the annual report and audit. This keeps the Estonian entity (BADideas OÜ) compliant and up to date.'},
+  {id:8, cat:'finance', op:'BADideas OÜ annual report', freq:'Annual (June)', owner:'Zlata', priority:'High', status:'In progress',
+   desc:'Coordinate the preparation and submission of the annual report for the Estonian fund entity, BADideas OÜ. This involves working with the external audit firm, preparing portfolio valuation documentation, sharing all required financial data, and ensuring the report is signed off and filed by the June deadline.'},
+  {id:9, cat:'finance', op:'BADideas OÜ audit', freq:'Annual', owner:'Zlata', priority:'High', status:'In progress',
+   desc:'Manage the annual audit process for BADideas OÜ. Provide the external auditor with all required financial and investment records. Prepare a clear and defensible valuation methodology for the portfolio with supporting evidence. Respond to any auditor queries promptly.'},
+  {id:10,cat:'finance', op:'Portfolio valuation (IPEV)', freq:'Monthly + on new rounds', owner:'Zlata', priority:'High', status:'',
+   desc:'Each month — and whenever a portfolio company closes a new funding round — update the valuations of all fund investments using the IPEV (International Private Equity and Venture Capital) methodology. Collect KPI data from startups, apply the agreed valuation approach, update the balance sheet, document the rationale for each company\'s valuation, and communicate any changes to the accountant.'},
+
+  {id:11,cat:'lp', op:'Advance drawdown notice', freq:'Quarterly (2 wks before)', owner:'Zlata', priority:'High', status:'',
+   desc:'Two weeks before each quarterly capital call, send a personal "heads up" email to each LP individually to give them time to prepare the funds. These are sent one by one — not as a group email — so each LP receives a message addressed to them personally.'},
+  {id:12,cat:'lp', op:'Quarterly drawdown + payment tracking', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
+   desc:'Calculate the exact amount each LP owes for the quarter based on their commitment percentage. Prepare the official PDF drawdown notice for each LP, send it individually (with the accountant copied), then monitor which LPs have paid. Follow up directly and personally with any LP who is late.'},
+  {id:13,cat:'lp', op:'LP Report — Executive Summary', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
+   desc:'Write the narrative introduction to the quarterly LP report — an overview of the fund\'s quarter covering key investments made, portfolio highlights, team updates, and strategic context. Align the key messages with the fund manager before writing. The report must be sent within 30 days of each quarter end.'},
+  {id:14,cat:'lp', op:'LP Report — Fund Activities', freq:'Quarterly', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Write the Fund Activities section of the quarterly report, documenting team appearances, events attended, conferences, partnerships, and other notable milestones from the quarter. Include relevant photos where available.'},
+  {id:15,cat:'lp', op:'LP Report — Deal flow section review', freq:'Quarterly', owner:'Zlata (reviews)', priority:'Medium', status:'',
+   desc:'The investment team prepares the deal flow slides each quarter. Zlata reviews them before the report is finalised to ensure the data is accurate, the framing is consistent with the fund\'s narrative, and there are no errors or outdated figures.'},
+  {id:16,cat:'lp', op:'LP Report — Portfolio company updates', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
+   desc:'The most hands-on part of the quarterly LP report. Steps: (1) Request KPI and performance updates from all portfolio companies — chase via WhatsApp for any that don\'t respond. (2) Schedule a call with Ben to align on what we\'re saying about each company — agree on the narrative, flag any sensitive situations, and decide how to frame companies that are struggling. (3) Write or review the update text for each portfolio company, making sure it\'s accurate, honest, and investor-appropriate. (4) Check the latest quarterly reports and financials from each company. (5) Run an AI-assisted consistency check across all company texts for tone and factual accuracy. (6) Write a short section on how the fund performed this quarter overall — portfolio as a whole, any major developments, what\'s coming next.'},
+  {id:17,cat:'lp', op:'LP Report — Assembly & send', freq:'Quarterly', owner:'Zlata', priority:'High', status:'',
+   desc:'Bring all completed sections of the quarterly report together — executive summary, fund activities, deal flow overview, and portfolio company updates. Complete a final proofread, ensure formatting is consistent, and send the finished report to all LPs individually via email.'},
+  {id:18,cat:'lp', op:'Investment model maintenance', freq:'Quarterly or on pace change', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Keep the fund\'s investment model up to date, reflecting the current pace of investments and cash deployment. This model is the basis for future drawdown forecasts and LP projections. Update it whenever the investment pace changes significantly, or at minimum once per quarter.'},
+  {id:19,cat:'lp', op:'LP individual queries', freq:'Ad hoc', owner:'Zlata', priority:'High', status:'',
+   desc:'Respond to individual requests and questions that come in from LPs outside of the regular reporting cycle. These can range from questions about a specific portfolio company, to administrative document requests, to queries about their side letter, to general questions about the fund. Each LP gets a prompt, personalised response.'},
+  {id:20,cat:'lp', op:'Carry proceeds distribution', freq:'On exit', owner:'Zlata', priority:'Medium', status:'',
+   desc:'When the fund realises a return through a secondary sale or full exit, calculate how much carry each participant is entitled to based on the carry allocation rules, and distribute the proceeds accordingly. Individual carry arrangements may vary per team member.'},
+
+  {id:21,cat:'deals', op:'Deal management (ongoing)', freq:'Ongoing', owner:'Zlata', priority:'High', status:'',
+   desc:'Stay on top of every active deal in the pipeline — from first Investment Committee review through to signed agreement and closed wire. This means tracking progress across legal review, compliance checks, signature collection, and final filing, and ensuring nothing stalls or falls through the cracks.'},
+  {id:22,cat:'deals', op:'deals@ email monitoring', freq:'Weekly monitor / monthly cleanup', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Monitor the shared fund inbox (deals@) on a weekly basis. Route relevant inbound messages to the right team member, respond to straightforward enquiries directly, and do a monthly cleanup of old threads to keep the inbox organised.'},
+  {id:23,cat:'deals', op:'IC lineup selection', freq:'Weekly (Tue AM deadline)', owner:'Zlata', priority:'High', status:'',
+   desc:'Every Tuesday morning, select which companies will be reviewed at that week\'s Investment Committee session. Choose from the shortlisted companies in the pipeline management tool, ensuring there are enough companies queued. The deadline is Tuesday morning so the investment team has time to prepare.'},
+  {id:24,cat:'deals', op:'IC badge / briefing prep', freq:'Weekly', owner:'Zlata', priority:'High', status:'',
+   desc:'Prepare the briefing document (IC badge) for each company presenting at the weekly Investment Committee session. This gives the committee members the key information they need — company overview, stage, ask, and any relevant context — to evaluate the deal efficiently.'},
+  {id:25,cat:'deals', op:'Deal memo review (4th & 5th pielikums)', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
+   desc:'Before any deal goes to the Investment Committee, review the compliance annexes attached to the deal memo — specifically the sections on double funding checks, fraud risk assessment, and conflict of interest declarations. Flag any issues or gaps with the compliance lead before the IC session.'},
+  {id:26,cat:'deals', op:'KYC / AML screening', freq:'Per deal', owner:'Zlata + Rainers', priority:'High', status:'',
+   desc:'For each new investment, carry out the required Know Your Customer (KYC) and Anti-Money Laundering (AML) checks on the company\'s founders and key individuals. Run names through AML screening tools, review identification documents, check against sanctions lists, and upload all results to the designated folder. Required for every deal before investment can proceed.'},
+  {id:27,cat:'deals', op:'Double funding / EU check', freq:'Per ALTUM deal', owner:'Zlata', priority:'High', status:'',
+   desc:'For deals that involve co-investment from ALTUM (the Latvian state development finance institution), verify that the company has not already received overlapping EU funding from other sources. Search relevant public EU funding databases and the national business registry. Document the findings in the required compliance annex.'},
+  {id:28,cat:'deals', op:'Investment agreement review', freq:'Per deal', owner:'Zlata (reviews)', priority:'High', status:'',
+   desc:'Review the legal terms of each investment agreement — whether a SAFE (Simple Agreement for Future Equity), a convertible loan agreement, or an equity round side letter. Flag any unusual terms, risks, or missing provisions. For complex legal questions, coordinate with external legal counsel. The investment lead drafts the initial version.'},
+  {id:29,cat:'deals', op:'Dokobit signature coordination', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
+   desc:'Set up each investment document for electronic signing through the fund\'s e-signature platform. Send the document to all required signatories in the correct order, track who has signed and who hasn\'t, follow up with anyone who is slow to sign, and file the completed document as soon as all signatures are collected.'},
+  {id:30,cat:'deals', op:'Signed docs filing (Drive)', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
+   desc:'As soon as every required signature is collected on an investment document, file it immediately in the correct location in the shared document storage. A clean, well-organised archive is essential for audits, LP reporting, and any future due diligence requests from portfolio companies or acquirers.'},
+  {id:31,cat:'deals', op:'CLA maturity date tracking', freq:'Quarterly audit + ongoing', owner:'Zlata', priority:'High', status:'',
+   desc:'Maintain a complete and up-to-date record of all convertible loan agreements (CLAs) in the CRM, including their maturity dates. Regularly audit the list, update the status of each loan (converted to equity, extended, repaid, or status unknown), and proactively follow up on any loans that are approaching or past their maturity date.'},
+  {id:32,cat:'deals', op:'Power of attorney (AGMs)', freq:'Per AGM request', owner:'Zlata', priority:'Medium', status:'',
+   desc:'When a portfolio company requests that the fund participate in their Annual General Meeting, review the power of attorney document they send, sign it using the fund\'s qualified electronic signature (covering both the Latvian and Estonian fund entities), and return it to the company before the AGM date.'},
+  {id:33,cat:'deals', op:'US K-1 / W-8BEN-E reporting', freq:'Annual or on income event', owner:'Zlata', priority:'Low', status:'Done',
+   desc:'Maintain the fund\'s folder of US tax forms for US-incorporated portfolio companies. When a taxable income event occurs — such as an interest payment on a convertible note — sign and return the required US tax withholding form (W-8BEN-E). The full process is documented separately.'},
+  {id:34,cat:'deals', op:'ALTUM iemaksas pieprasījums (CC)', freq:'Per ALTUM deal', owner:'Rainers (Zlata CC)', priority:'Medium', status:'',
+   desc:'For each investment that involves ALTUM co-funding, the compliance lead prepares and submits a formal payment request to ALTUM. Zlata is copied on all submissions, tracks the status of each request, and follows up if the process is delayed or stalls.'},
+
+  {id:35,cat:'compliance', op:'Compliance calendar maintenance', freq:'Ongoing', owner:'Zlata', priority:'High', status:'',
+   desc:'Maintain the master compliance calendar, which tracks every regulatory deadline across all fund entities. Add new deadlines as they emerge from legislation or regulator correspondence, update existing entries when timelines change, and review the calendar regularly to ensure nothing is approaching unnoticed.'},
+  {id:36,cat:'compliance', op:'CFLA bi-annual report', freq:'Twice yearly (Jul 10 + Jan 10)', owner:'Rainers + Zlata', priority:'High', status:'',
+   desc:'Twice a year, submit the required report to CFLA — the European structural funds monitoring authority in Latvia. The compliance lead prepares and submits the report; Zlata reviews the underlying data for accuracy and completeness before it is submitted. Next deadline: July 10, 2026.'},
+  {id:37,cat:'compliance', op:'Latvijas Banka quarterly report', freq:'Quarterly', owner:'Rainers (Zlata CC)', priority:'High', status:'',
+   desc:'Submit the quarterly fund report to Latvijas Banka (the Bank of Latvia), which regulates alternative investment fund managers. The compliance lead prepares and submits the report; Zlata is copied on the submission for awareness and records.'},
+  {id:38,cat:'compliance', op:'BIFI annual compliance review', freq:'Annual', owner:'Zlata', priority:'High', status:'',
+   desc:'Each year, coordinate with the fund\'s external auditors to complete the BIFI compliance review. This involves providing investment data, portfolio valuation methodology documentation, and any other materials the auditors require. This review is a regulatory requirement for the fund\'s continued authorisation to operate.'},
+  {id:39,cat:'compliance', op:'Internal compliance automation (Claude)', freq:'Ongoing', owner:'Zlata', priority:'Medium', status:'Done',
+   desc:'Maintain and improve an internal AI-based tool used to automate parts of the compliance review process — including double funding checks, EU co-investor screening, and fraud risk assessment. Update the procedures and prompts as regulations or internal policies change.'},
+
+  {id:40,cat:'portfolio', op:'Monthly portfolio KPI updates', freq:'Monthly', owner:'Zlata', priority:'High', status:'',
+   desc:'Each month, collect key performance metrics from all active portfolio companies — typically revenue, monthly burn rate, and remaining cash runway. Review what has been submitted, flag any companies that have not reported or whose numbers raise concerns, and follow up until all data has been received.'},
+  {id:41,cat:'portfolio', op:'Updates platform (Softr / portal)', freq:'Ongoing', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Keep the investor-facing portal up to date and accurate. Only investments that are fully closed — with both wire received and documents signed — should be visible to investors. Ensure that data flows correctly from the internal database to the portal and that the investor experience is clean and professional.'},
+  {id:42,cat:'portfolio', op:'Annual report collection (startups)', freq:'Annual', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Once a year, request the annual statutory report from each portfolio company. Track which companies have submitted their report, follow up with those who haven\'t, and file all reports in the appropriate location for audit and LP reporting purposes.'},
+  {id:43,cat:'portfolio', op:'Portfolio revaluation for balance sheet', freq:'Quarterly + on events', owner:'Zlata', priority:'High', status:'',
+   desc:'Apply the fund\'s valuation policy to all portfolio investments on the balance sheet. Investments less than 12 months old are held at cost; investments older than 12 months must be revalued. Review is done quarterly and also triggered by significant events such as a new funding round or material business change. Communicate all changes to the accountant.'},
+  {id:44,cat:'portfolio', op:'Investor intros / fundraising support', freq:'As needed', owner:'Zlata', priority:'Medium', status:'',
+   desc:'When a portfolio company is actively raising a new funding round, help connect them with relevant investors from the fund\'s network. Start with a short, personalised introduction — only share the full pitch deck if the investor expresses genuine interest. Track outreach to avoid contacting the same person twice.'},
+
+  {id:45,cat:'dealflow', op:'Deal batch creation (Delfalā)', freq:'Every other day', owner:'Zlata', priority:'High', status:'',
+   desc:'Every other day, pull newly submitted companies from the Delfalā deal sourcing platform and add them to the Stage 4 pipeline in the fund\'s CRM. This is the primary inbound channel for new deal flow and keeps the pipeline active and fresh.'},
+  {id:46,cat:'dealflow', op:'Stage 4 funnel cleanup', freq:'Weekly', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Weekly maintenance of the active deal pipeline. Remove companies that have been in Stage 4 for more than two months without progressing (mark as Lost). Send reminder emails to companies that applied between one week and two months ago. Keep the "reminder sent" status up to date in the CRM so nothing is chased twice.'},
+  {id:47,cat:'dealflow', op:'Airtable / portal interface redesign', freq:'—', owner:'Zlata & Rainers', priority:'Medium', status:'In progress',
+   desc:'An active project to rebuild and improve the fund\'s operational interfaces in Airtable and the connected investor portal. Covers the deal onboarding flow, Launchpad fee tracking, Investment Committee presentation format, automatic triggers to the investor portal when a deal closes, and automation of compliance document preparation.'},
+  {id:48,cat:'dealflow', op:'Automations — build & maintain', freq:'Ongoing', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Monitor all existing automations that keep the fund\'s day-to-day operations running — including pipeline reminders, calendar syncs between tools, and data triggers between the CRM and other platforms. Build new automations when repetitive manual processes are identified. Fix any that break.'},
+  {id:49,cat:'dealflow', op:'Platform / Supabase process doc', freq:'—', owner:'Zlata (ops section)', priority:'Medium', status:'In progress',
+   desc:'Document the full operational workflow for the fund\'s internal platform from an operations perspective. Zlata covers the operations side; the compliance lead covers the regulatory side. The combined document feeds into the technical specification for building the system.'},
+
+  {id:50,cat:'syndicate', op:'SPV round management', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
+   desc:'When a new syndicate deal opens, manage the full round process: coordinate with the SPV administrator, run identity and business verification checks on syndicate investors, track all document signatures and incoming wire transfers, and keep investors informed throughout the process. The full operational playbook is documented separately.'},
+  {id:51,cat:'syndicate', op:'Syndicate investor communications', freq:'Ad hoc', owner:'Zlata', priority:'High', status:'',
+   desc:'Respond to incoming questions and requests from syndicate investors. Common enquiries include questions about exit timelines or valuations, requests for tax invoices or transaction documents, questions about portfolio company performance, and requests to sell or transfer their position in a company.'},
+  {id:52,cat:'syndicate', op:'Syndicate exit management', freq:'Per exit', owner:'Zlata', priority:'High', status:'',
+   desc:'When a syndicate investment is exited — through a secondary sale or company acquisition — coordinate the full exit process: agree on the final valuation, prepare and execute all required legal documents, arrange the wire transfer of proceeds to investors, and update all records in the CRM and investor portal.'},
+  {id:53,cat:'syndicate', op:'Syndicate annual audit', freq:'Annual', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Once a year, review all SPV (Special Purpose Vehicle) records to ensure everything is in order. Cross-check the document archive against the database, confirm that all investor documents are present and correctly filed, and flag any gaps or inconsistencies that need to be resolved.'},
+  {id:54,cat:'syndicate', op:'Syndicate document cleanup', freq:'—', owner:'Zlata', priority:'Medium', status:'In progress',
+   desc:'An ongoing project to bring all historical syndicate documents into a clean, organised state. Involves downloading documents in bulk, matching them to the correct companies and investor records, ensuring all documents include the required legal disclaimers, and reconciling any outstanding deposit records.'},
+  {id:55,cat:'syndicate', op:'Syndicate LP notifications (follow-on)', freq:'Per round', owner:'Zlata', priority:'Medium', status:'',
+   desc:'When a portfolio company in the syndicate opens a new follow-on funding round, proactively notify existing syndicate investors about the opportunity to invest again. Send personalised deal announcements via email to relevant investors.'},
+  {id:56,cat:'syndicate', op:'Syndicate decision timeline review', freq:'—', owner:'Zlata', priority:'Low', status:'',
+   desc:'Review and document the decision timeline for each syndicate round — from initial investor commitment to final round close. This helps identify patterns, improve future round management, and provides a useful reference for new deals. A working spreadsheet already exists and needs to be kept current.'},
+
+  {id:57,cat:'team', op:'Team weekly standups', freq:'Weekly', owner:'Zlata', priority:'High', status:'',
+   desc:'Attend the weekly all-team standup meeting. Meeting notes are automatically generated and distributed after the session. Review the notes and follow up on any action items assigned during the meeting to ensure they are completed before the next standup.'},
+  {id:58,cat:'team', op:'1-on-1s (Mārtiņš / Jūris / Rainers)', freq:'Weekly / bi-weekly', owner:'Zlata', priority:'High', status:'',
+   desc:'Hold regular one-on-one meetings with each team member. These are the primary channel for understanding each person\'s workload, priorities, and any blockers they are facing. Zlata consolidates team updates and reports to the fund manager. This responsibility was previously held by the outgoing operations lead.'},
+  {id:59,cat:'team', op:'Birthday gifts', freq:'Per birthday', owner:'Zlata', priority:'Low', status:'',
+   desc:'Keep track of birthdays for all team members and key external partners. Arrange and send appropriate gifts well in advance so nothing is missed or last-minute.'},
+  {id:60,cat:'team', op:'Travel coordination', freq:'Per trip', owner:'Zlata', priority:'Low', status:'',
+   desc:'Arrange all travel logistics for the team — flights, hotels, and local transfers — for conferences, LP meetings, and other fund-related trips. Book in advance to manage costs and ensure smooth travel.'},
+  {id:61,cat:'team', op:'Conference tickets & planning', freq:'Per conference', owner:'Zlata', priority:'Medium', status:'',
+   desc:'Research conferences relevant to the fund\'s investment focus and LP network. Purchase tickets, register team members, and plan attendance logistics including travel, scheduling, and any side meetings to arrange while at the event.'},
+  {id:62,cat:'team', op:'All-day events & office coordination', freq:'As scheduled', owner:'Zlata', priority:'Low', status:'',
+   desc:'Organise fund-hosted events and team working days. Book office or event space as required, manage catering or logistics where needed, and ensure the team has everything in place for larger internal gatherings and external events.'},
+  {id:63,cat:'team', op:'Password manager — implement', freq:'—', owner:'Zlata', priority:'Low', status:'In progress',
+   desc:'Select a password management tool suitable for the whole team, set it up, migrate existing shared credentials into the system, and ensure every team member is using it consistently. This closes a current security gap where passwords are managed inconsistently across the team.'},
+  {id:64,cat:'team', op:'Claude tokens management', freq:'Monthly', owner:'Zlata', priority:'Low', status:'',
+   desc:'Monitor the team\'s usage of the AI assistant (Claude) across all team members each month. Ensure everyone has sufficient access, top up token allocations when needed, and manage the distribution to avoid any one person consuming a disproportionate share.'},
+  {id:65,cat:'team', op:'NDA / IP Waiver for R&B', freq:'—', owner:'Zlata (follow up)', priority:'Low', status:'Blocked',
+   desc:'Finalise the NDA and intellectual property waiver agreements with the fund\'s external accounting partners. The previous operations lead was drafting these before she left. Confirm whether the drafts were completed and, if not, restart the process with legal counsel.'},
+  {id:66,cat:'team', op:'IC carry database update', freq:'—', owner:'Kristians', priority:'Low', status:'Blocked',
+   desc:'An ongoing project to update and reconcile the carry allocation database for Investment Committee members. Owned by an external contributor. Zlata monitors the status and follows up when progress has stalled.'},
+  {id:67,cat:'team', op:'Sprint tracking (Pam)', freq:'Weekly (Mon)', owner:'Zlata + Ben', priority:'Medium', status:'',
+   desc:'Each Monday, review the weekly sprint document prepared by the operations assistant. Read the weekly analysis, note any issues or changes in priorities, respond with feedback or direction, and follow up on outstanding action items throughout the week.'},
+];
+
+// COMPLIANCE CALENDAR — from Compliance Calendar CSV
+// date format: YYYY-MM-DD, '' = no fixed date / recurring
+const TODAY = new Date('2026-06-30');
+const CAL=[
+  // UPCOMING / Future items
+  {name:'Investment usage review per AML',          date:'2026-07-01',audience:'Internal',   cat:'compliance', status:'',     notes:'Annually'},
+  {name:'CFLA atskaite (Q2 2026)',                  date:'2026-07-10',audience:'Altum, CFLA',cat:'compliance', status:'',     notes:'Rainers leads, Zlata checks'},
+  {name:'Quarter Report to LPs (Q2)',               date:'2026-07-30',audience:'LPs',        cat:'lp',         status:'In progress', notes:'30 days after Q2 end'},
+  {name:'LB Quarterly Fund report (Q2)',            date:'2026-07-20',audience:'BoL',        cat:'compliance', status:'',     notes:'Rainers submits'},
+  {name:'LB ESMA / EVTI report',                   date:'2026-07-31',audience:'BoL',        cat:'compliance', status:'',     notes:'Semi-annual'},
+  {name:'AML initial assessment',                   date:'2026-08-07',audience:'Internal',   cat:'compliance', status:'',     notes:'18 months after policy approval'},
+  {name:'Mgt Fee Drawdown notice (Q3)',             date:'2026-09-30',audience:'LPs',        cat:'lp',         status:'',     notes:'14 business days before payment'},
+  {name:'High risk country risk update',            date:'2026-09-05',audience:'Internal',   cat:'compliance', status:'',     notes:'Biannually'},
+  {name:'Operational Financial Report (Q3)',        date:'2026-10-10',audience:'LPs',        cat:'lp',         status:'',     notes:'Within 10 days of quarter end'},
+  {name:'LB Quarterly Fund report (Q3)',            date:'2026-10-20',audience:'BoL',        cat:'compliance', status:'',     notes:'Rainers submits'},
+  {name:'Quarter Report to LPs (Q3)',               date:'2026-10-30',audience:'LPs',        cat:'lp',         status:'',     notes:'30 days after Q3 end'},
+  {name:'LB ESMA / EVTI report',                   date:'2026-10-31',audience:'BoL',        cat:'compliance', status:'',     notes:'Quarterly'},
+  {name:'PortCo investor check policy review',      date:'2026-11-08',audience:'Internal',   cat:'compliance', status:'Annual',notes:'Annually'},
+  {name:'Review AML Policy, Procedure & Assessment',date:'2026-05-31',audience:'Internal',   cat:'compliance', status:'In progress', notes:'Was due May 31 — in progress'},
+  {name:'Mgt Fee Drawdown notice (Q4)',             date:'2026-12-31',audience:'LPs',        cat:'lp',         status:'',     notes:'14 business days before payment'},
+  {name:'CFLA atskaite (Q3 2026)',                  date:'2026-10-15',audience:'Altum, CFLA',cat:'compliance', status:'',     notes:'Estimate — confirm exact date'},
+  {name:'LB ESMA / EVTI report',                   date:'2027-01-31',audience:'BoL',        cat:'compliance', status:'',     notes:'Annual'},
+  {name:'AML external audit',                       date:'2027-02-07',audience:'Internal',   cat:'compliance', status:'',     notes:'2 years after initial assessment'},
+  {name:'AML Board member review',                  date:'2027-02-07',audience:'Internal',   cat:'compliance', status:'',     notes:'Every 2 years'},
+  {name:'Standard risk LP review',                  date:'2028-02-07',audience:'Internal',   cat:'compliance', status:'',     notes:'Every 3 years'},
+  {name:'AML full assessment',                      date:'2028-02-07',audience:'Internal',   cat:'compliance', status:'',     notes:'3 years after initial assessment'},
+  {name:'Low risk LP review',                       date:'2030-02-07',audience:'Internal',   cat:'compliance', status:'',     notes:'Every 5 years'},
+  {name:'Investment period end',                    date:'2030-03-24',audience:'LPs',        cat:'lp',         status:'',     notes:'5 years from Initial Closing'},
+  {name:'AML external audit (2nd)',                 date:'2031-02-07',audience:'Internal',   cat:'compliance', status:'',     notes:'Every 4 years'},
+  {name:'Fund term end',                            date:'2035-03-24',audience:'LPs',        cat:'lp',         status:'',     notes:'10 years from Initial Closing Date'},
+  // Recurring items without fixed next date — still worth tracking
+  {name:'High risk LP review',                      date:'2027-02-07',audience:'Internal',   cat:'compliance', status:'Annual',notes:'Annually — next cycle Feb 2027'},
+  {name:'Ukraine sanctions review',                 date:'2027-02-07',audience:'Internal',   cat:'compliance', status:'Annual',notes:'Annually'},
+  {name:'Risk appetite review by the Board',        date:'2027-02-07',audience:'Internal',   cat:'compliance', status:'Annual',notes:'Annually'},
+  {name:'Negative information PortCo review',       date:'2027-05-01',audience:'Internal',   cat:'portfolio',  status:'Annual',notes:'Annually'},
+  {name:'CFLA atskaite (Jan 2027)',                  date:'2027-01-10',audience:'Altum, CFLA',cat:'compliance', status:'',     notes:'Bi-annual'},
+  {name:'Team AML training',                        date:'2027-03-01',audience:'Internal',   cat:'compliance', status:'',     notes:'2h every year'},
+  // Monthly recurring — Finance
+  {name:'Monthly closing',    date:'2026-07-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-07-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-08-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-08-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-09-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-09-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-10-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-10-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-11-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-11-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  {name:'Monthly closing',    date:'2026-12-10',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
+  {name:'Monthly budget files',date:'2026-12-15',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
+  // Portfolio KPI monthly
+  {name:'Portfolio KPI updates',date:'2026-07-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
+  {name:'Portfolio KPI updates',date:'2026-08-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
+  {name:'Portfolio KPI updates',date:'2026-09-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
+  {name:'Portfolio KPI updates',date:'2026-10-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
+  {name:'Portfolio KPI updates',date:'2026-11-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
+  {name:'Portfolio KPI updates',date:'2026-12-10',audience:'Portfolio companies',cat:'portfolio',status:'',notes:'Collect revenue/burn/runway from all startups'},
+];
+
+// STATE
+let view='map', activeCat='all', q='';
+let openOpId=null;
+const store=JSON.parse(localStorage.getItem('badi_v2')||'{}');
+// store = { prof:{id:val}, notes:{id:val}, names:{id:val} }
+if(!store.prof)      store.prof={};
+if(!store.notes)     store.notes={};
+if(!store.names)     store.names={};
+if(!store.descs)     store.descs={};
+if(!store.custom)    store.custom=[];   // [{id,cat,op,freq,owner,priority,status,desc}]
+if(!store.calCustom)  store.calCustom=[];  // [{name,date,audience,cat,notes}]
+if(!store.calStatus)  store.calStatus={};  // {key: 'Done'|'In progress'|''}
+if(!store.calDate)    store.calDate={};    // {key: 'YYYY-MM-DD'} — date overrides
+if(!store.priority)   store.priority={};   // {id: 'High'|'Medium'|'Low'} — priority overrides
+function save(){localStorage.setItem('badi_v2',JSON.stringify(store))}
+
+function allOps(){return [...OPS,...store.custom];}
+function nextCustomId(){return 10000+store.custom.length+Math.floor(Math.random()*100);}
+
+function getProf(id){return store.prof[id]||'—'}
+function getName(id){return store.names[id]||allOps().find(o=>o.id===id)?.op||''}
+function getDesc(id){const o=allOps().find(x=>x.id===id);return store.descs[id]||(o?o.desc:'')||''}
+function isCustom(id){return store.custom.some(o=>o.id===id)}
+function getPriority(id){return store.priority[id]||allOps().find(o=>o.id===id)?.priority||'Medium'}
+
+// STATS
+function updateStats(){
+  const all=allOps();
+  const highCount=all.filter(o=>o.priority==='High').length;
+  const rated=all.filter(o=>store.prof[o.id]&&store.prof[o.id]!=='—').length;
+  const allCal=[...CAL,...store.calCustom];
+  const in90=new Date(TODAY); in90.setDate(in90.getDate()+90);
+  const upcoming=allCal.filter(c=>{const d=new Date(c.date);return d>=TODAY&&d<=in90;}).length;
+  document.getElementById('sTotal').textContent=all.length;
+  document.getElementById('sHigh').textContent=highCount;
+  document.getElementById('sDeadlines').textContent=upcoming;
+  document.getElementById('sRated').textContent=rated+'/'+all.length;
+}
+
+// MAP VIEW
+function renderMap(){
+  const el=document.getElementById('map-view');
+  el.innerHTML='';
+  Object.entries(CATS).forEach(([key,cat])=>{
+    const ops=allOps().filter(o=>o.cat===key);
+    const high=ops.filter(o=>o.priority==='High');
+    const preview=high.slice(0,5);
+    const rest=ops.length-preview.length;
+    const tile=document.createElement('div');
+    tile.className='mtile';
+    tile.tabIndex=0;
+    tile.innerHTML=`
+      <div class="th">
+        <div class="tlab" style="color:${cat.color}">${cat.label}</div>
+        <div class="tcount" style="color:${cat.color}">${ops.length}</div>
+      </div>
+      <div class="tbody">
+        ${preview.map(o=>`<div class="top"><span class="tdot" style="background:${cat.color}"></span><span>${getName(o.id)}</span></div>`).join('')}
+        ${rest>0?`<div class="tmore">+${rest} more operations</div>`:''}
+      </div>
+      <div class="tft">
+        <span class="tftl">Operations</span>
+        ${high.length>0?`<span class="thigh">${high.length} HIGH</span>`:'<span></span>'}
+      </div>`;
+    const go=()=>{switchView('ops');setActiveCat(key);};
+    tile.addEventListener('click',go);
+    tile.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+    el.appendChild(tile);
+  });
+}
+
+// OPS VIEW
+function filtered(){
+  return allOps().filter(o=>{
+    const catOk=activeCat==='all'||o.cat===activeCat;
+    const sq=q.toLowerCase();
+    const srOk=!sq||getName(o.id).toLowerCase().includes(sq)||o.freq.toLowerCase().includes(sq)||o.owner.toLowerCase().includes(sq)||CATS[o.cat].label.toLowerCase().includes(sq)||(o.desc||'').toLowerCase().includes(sq);
+    return catOk&&srOk;
+  });
+}
+
+function renderOps(){
+  const wrap=document.getElementById('ops-view');
+  const ops=filtered();
+  const leg=`
+  <div class="ops-toolbar">
+    <div class="prof-legend" style="margin-bottom:0">
+      <span class="pl-l">Proficiency:</span>
+      ${PC.filter(p=>p!=='—').map(p=>`<span class="pl-c" style="background:${PS[p].bg};color:${PS[p].color};border-color:${PS[p].bd}">${p}</span>`).join('')}
+      <span class="pl-c" style="background:${PS['—'].bg};color:${PS['—'].color};border-color:${PS['—'].bd}">— Not set</span>
+    </div>
+    <button class="add-btn primary" id="btn-new-op">+ New Operation</button>
+  </div>`;
+  if(!ops.length){wrap.innerHTML=leg+'<div class="ops-grid"><div class="no-r">No operations match your filter.</div></div>';
+    document.getElementById('btn-new-op').addEventListener('click',openAddOp);return;}
+  wrap.innerHTML=leg+'<div class="ops-grid">'+ops.map(o=>{
+    const cat=CATS[o.cat];
+    const p=getProf(o.id);
+    const ps=PS[p];
+    const pri=getPriority(o.id);
+    const stag=o.status?`<span class="stag ${o.status==='Done'?'sdone':o.status==='In progress'?'sprog':'sblok'}">${o.status}</span>`:'<span></span>';
+    const hasNotes=store.notes[o.id]?'🗒 ':'';
+    return `<div class="ocard" style="border-left-color:${cat.color}" data-id="${o.id}">
+      <div class="oc-top">
+        <div class="oc-hd">
+          <div class="oc-name">${getName(o.id)}${isCustom(o.id)?'<span class="custom-badge">custom</span>':''}</div>
+          <div class="pchip p${pri[0]}">${pri}</div>
+        </div>
+        ${getDesc(o.id)?`<div class="oc-desc">${getDesc(o.id)}</div>`:''}
+        <div class="oc-meta">
+          <span class="occat" style="color:${cat.color}">${cat.short}</span>
+          ${o.freq!=='—'?`<span class="ocfreq">${o.freq}</span>`:''}
+          <span class="ocown">${o.owner}</span>
+        </div>
+      </div>
+      <div class="oc-ft">
+        ${stag}
+        <button class="pbtn" style="background:${ps.bg};color:${ps.color};border-color:${ps.bd}">${hasNotes}${p==='—'?'Set proficiency':p}</button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+
+  wrap.querySelectorAll('.ocard').forEach(card=>{
+    card.addEventListener('click',()=>openDetail(parseInt(card.dataset.id)));
+  });
+  document.getElementById('btn-new-op').addEventListener('click',openAddOp);
+}
+
+// CALENDAR VIEW
+function daysUntil(dateStr){
+  const d=new Date(dateStr);
+  return Math.round((d-TODAY)/(1000*60*60*24));
+}
+
+function renderCal(){
+  const wrap=document.getElementById('cal-view');
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Build all items with stable keys and apply date/status overrides
+  const allCal=[
+    ...CAL.map((item,i)=>({...item,_key:'cal-'+i,_origDate:item.date})),
+    ...store.calCustom.map((item,i)=>({...item,_key:'cust-'+i,_origDate:item.date}))
+  ].map(item=>({
+    ...item,
+    date: store.calDate[item._key]||item.date,
+    _status: store.calStatus.hasOwnProperty(item._key) ? store.calStatus[item._key] : (item.status||'')
+  }));
+
+  const sorted=[...allCal].sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  const months={};
+  sorted.forEach(item=>{
+    const d=new Date(item.date);
+    const mk=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+    if(!months[mk])months[mk]=[];
+    months[mk].push(item);
+  });
+
+  function statusHtml(key,st){
+    if(st==='Done')        return `<button class="cal-status-btn cst-done"  data-key="${key}" data-act="status">✓ Done</button>`;
+    if(st==='In progress') return `<button class="cal-status-btn cst-prog"  data-key="${key}" data-act="status">● In progress</button>`;
+    return                        `<button class="cal-status-btn cst-none"  data-key="${key}" data-act="status">○ Not started</button>`;
+  }
+
+  let html=`<div class="cal-toolbar">
+    <div class="cal-title">Compliance & Regulatory Calendar · ${Object.keys(months).length} months</div>
+    <div style="display:flex;gap:8px">
+      <button class="add-btn primary" id="btn-new-cal">+ New Event</button>
+      <button class="ics-btn" id="ics-export">↓ Export All (.ics)</button>
+    </div>
+  </div>`;
+
+  Object.entries(months).forEach(([mk,items])=>{
+    const [yr,mo]=mk.split('-');
+    html+=`<div class="cal-month"><div class="cal-mhd">${monthNames[parseInt(mo)-1]} ${yr} · ${items.length} item${items.length!==1?'s':''}</div>`;
+    items.forEach(item=>{
+      const d=new Date(item.date+'T12:00:00');
+      const dayStr=d.getDate().toString().padStart(2,'0')+' '+monthNames[d.getMonth()];
+      const days=daysUntil(item.date);
+      const cat=CATS[item.cat]||{color:'#888'};
+      let urg='';
+      if(days>=0&&days<=14) urg=`<span class="cal-urg urg-now">${days===0?'TODAY':days+'d'}</span>`;
+      else if(days>14&&days<=30) urg=`<span class="cal-urg urg-soon">${days}d</span>`;
+      const matchedOp=allOps().find(o=>getName(o.id).toLowerCase()===item.name.toLowerCase());
+      const pastCls=days<0?' cal-past':'';
+      html+=`<div class="cal-row${pastCls}" data-key="${item._key}">
+        <button class="cal-d-btn" data-key="${item._key}" data-act="date" title="Click to edit date">${dayStr}</button>
+        <div class="cal-stripe" style="background:${cat.color}"></div>
+        <div class="cal-body">
+          <div class="cal-name">${item.name}</div>
+          <div class="cal-sub">${item.audience||''}${item.notes?' · '+item.notes:''}</div>
+          ${matchedOp?`<span class="cal-op-link" data-act="openop" data-opid="${matchedOp.id}">↗ Open operation</span>`:''}
+        </div>
+        ${statusHtml(item._key,item._status)}
+        ${urg}
+        <button class="cal-add" data-key="${item._key}" data-act="ics">+ Cal</button>
+      </div>`;
+    });
+    html+='</div>';
+  });
+
+  wrap.innerHTML=html;
+  document.getElementById('ics-export').addEventListener('click',exportICS);
+  document.getElementById('btn-new-cal').addEventListener('click',openAddCal);
+
+  // Single event delegation for all interactions
+  wrap.addEventListener('click',e=>{
+    const btn=e.target.closest('[data-act]');
+    if(!btn) return;
+    e.stopPropagation();
+    const key=btn.dataset.key;
+    const act=btn.dataset.act;
+
+    if(act==='status'){
+      const cur=store.calStatus.hasOwnProperty(key)?store.calStatus[key]:(allCal.find(x=>x._key===key)?._status||'');
+      store.calStatus[key]=cur===''?'In progress':cur==='In progress'?'Done':'';
+      save(); renderCal();
+    }
+
+    if(act==='date'){
+      const item=allCal.find(x=>x._key===key);
+      if(!item) return;
+      const rect=btn.getBoundingClientRect();
+      const inp=document.createElement('input');
+      inp.type='date'; inp.className='cal-date-picker';
+      inp.value=item.date;
+      inp.style.top=(rect.bottom+4)+'px';
+      inp.style.left=rect.left+'px';
+      document.body.appendChild(inp);
+      inp.focus();
+      inp.showPicker?.();
+      const apply=()=>{
+        if(inp.value&&inp.value!==item._origDate){store.calDate[key]=inp.value;save();}
+        inp.remove(); renderCal();
+      };
+      inp.addEventListener('change',apply);
+      inp.addEventListener('blur',()=>setTimeout(()=>{if(document.body.contains(inp)){inp.remove();renderCal();}},150));
+    }
+
+    if(act==='ics'){
+      const item=sorted.find(x=>x._key===key);
+      if(item) addOneToCalendar(item);
+    }
+
+    if(act==='openop'){
+      const opid=parseInt(btn.dataset.opid);
+      if(!isNaN(opid)) openDetail(opid);
+    }
+  });
+}
+
+// SINGLE EVENT ICS
+function addOneToCalendar(item){
+  const d=new Date(item.date);
+  const ds=d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0');
+  const nd=new Date(d); nd.setDate(nd.getDate()+1);
+  const nds=nd.getFullYear()+(nd.getMonth()+1).toString().padStart(2,'0')+nd.getDate().toString().padStart(2,'0');
+  const uid='badi-'+ds+'-'+item.name.replace(/\s+/g,'').slice(0,12)+'@badideas.fund';
+  const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BADideas.fund//Ops Map//EN\r\nBEGIN:VEVENT\r\nUID:'+uid+'\r\nDTSTART;VALUE=DATE:'+ds+'\r\nDTEND;VALUE=DATE:'+nds+'\r\nSUMMARY:'+item.name.replace(/,/g,'\\,')+'\r\nDESCRIPTION:'+item.audience+' · '+(item.notes||'')+'\r\nCATEGORIES:'+(CATS[item.cat]?.label||item.cat)+'\r\nEND:VEVENT\r\nEND:VCALENDAR';
+  const blob=new Blob([ics],{type:'text/calendar'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=item.name.slice(0,40).replace(/[^a-zA-Z0-9]/g,'_')+'.ics';
+  a.click();
+}
+
+// FULL ICS EXPORT
+function exportICS(){
+  let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BADideas.fund//Ops Map//EN\r\nCALNAME:BADideas Compliance Calendar\r\n';
+  CAL.forEach((item,i)=>{
+    const d=new Date(item.date);
+    const ds=d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0');
+    const nd=new Date(d); nd.setDate(nd.getDate()+1);
+    const nds=nd.getFullYear()+(nd.getMonth()+1).toString().padStart(2,'0')+nd.getDate().toString().padStart(2,'0');
+    ics+=`BEGIN:VEVENT\r\nUID:badi-cal-${i}@badideas.fund\r\nDTSTART;VALUE=DATE:${ds}\r\nDTEND;VALUE=DATE:${nds}\r\nSUMMARY:${item.name.replace(/,/g,'\\,')}\r\nDESCRIPTION:${item.audience} · ${item.notes||''}\r\nCATEGORIES:${CATS[item.cat]?.label||item.cat}\r\nEND:VEVENT\r\n`;
+  });
+  ics+='END:VCALENDAR';
+  const blob=new Blob([ics],{type:'text/calendar'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='BADideas_Compliance_Calendar.ics';
+  a.click();
+}
+
+// PILLS
+function renderPills(){
+  const el=document.getElementById('cpills');
+  const cnt={all:OPS.length};
+  Object.keys(CATS).forEach(k=>{cnt[k]=OPS.filter(o=>o.cat===k).length;});
+  const items=[['all','All','#141C2E'],...Object.entries(CATS).map(([k,v])=>[k,v.short,v.color])];
+  el.innerHTML=items.map(([key,label,color])=>{
+    const a=activeCat===key;
+    const sty=a?`background:${color};color:#fff;border-color:${color}`:'';
+    return `<button class="cpill${a?' active':''}" data-cat="${key}" style="${sty}">${label} <span style="opacity:.55;font-variant-numeric:tabular-nums">${cnt[key]||''}</span></button>`;
+  }).join('');
+  el.querySelectorAll('.cpill').forEach(p=>p.addEventListener('click',()=>setActiveCat(p.dataset.cat)));
+}
+function setActiveCat(key){activeCat=key;renderPills();if(view==='ops')renderOps();}
+
+// VIEW SWITCHING
+function switchView(v){
+  view=v;
+  document.getElementById('map-view').classList.toggle('hidden',v!=='map');
+  document.getElementById('ops-view').classList.toggle('hidden',v!=='ops');
+  document.getElementById('cal-view').classList.toggle('hidden',v!=='cal');
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  const showPills=v==='ops';
+  document.getElementById('cpills').style.display=showPills?'flex':'none';
+  document.querySelector('.sbox').style.display=showPills?'flex':'none';
+  if(v==='ops') renderOps();
+  else if(v==='cal') renderCal();
+}
+
+// DETAIL PANEL
+function openDetail(id){
+  openOpId=id;
+  const o=OPS.find(x=>x.id===id);
+  const cat=CATS[o.cat];
+  const badge=document.getElementById('dp-badge');
+  badge.textContent=cat.label;
+  badge.style.background=cat.color+'18';
+  badge.style.color=cat.color;
+
+  const nameEl=document.getElementById('dp-name');
+  nameEl.textContent=getName(id);
+  nameEl.oninput=()=>{
+    store.names[id]=nameEl.textContent.trim()||o.op;
+    save();
+    // refresh card if visible
+    const card=document.querySelector(`.ocard[data-id="${id}"] .oc-name`);
+    if(card) card.textContent=store.names[id];
+  };
+
+  const fields=document.getElementById('dp-fields');
+  const dl=computeNextDeadline(o.freq);
+  const dlBox=dl?`<div class="dp-deadline-box" style="grid-column:1/-1">
+    <div>
+      <div class="dp-deadline-label">Next deadline</div>
+      <div class="dp-deadline-val">${fmtDate(dl.date)}</div>
+      <div class="dp-deadline-freq">${dl.label}</div>
+    </div>
+  </div>`:'';
+  const curPri=getPriority(id);
+  fields.innerHTML=`
+    ${dlBox}
+    <div class="dp-field"><div class="dp-fl">Frequency</div><div class="dp-fv">${o.freq}</div></div>
+    <div class="dp-field"><div class="dp-fl">Owner</div><div class="dp-fv">${o.owner}</div></div>
+    <div class="dp-field"><div class="dp-fl">Status</div><div class="dp-fv">${o.status||'—'}</div></div>
+    <div class="dp-field" style="grid-column:1/-1">
+      <div class="dp-fl">Priority <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;font-family:inherit;color:var(--text2);margin-left:4px">(click to change)</span></div>
+      <div class="dp-pri-grid" id="dp-pri-btns">
+        ${['High','Medium','Low'].map(p=>`<button class="dp-pribtn pri${p[0]}${curPri===p?' active':''}" data-pri="${p}">${p}</button>`).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('dp-pri-btns').querySelectorAll('.dp-pribtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const p=btn.dataset.pri;
+      store.priority[id]=p;
+      save();
+      document.getElementById('dp-pri-btns').querySelectorAll('.dp-pribtn').forEach(b=>b.classList.toggle('active',b.dataset.pri===p));
+      if(view==='ops') renderOps();
+    });
+  });
+
+  const descEl=document.getElementById('dp-desc');
+  descEl.textContent=getDesc(id);
+  let descTimer;
+  descEl.oninput=()=>{
+    clearTimeout(descTimer);
+    descTimer=setTimeout(()=>{store.descs[id]=descEl.textContent.trim();save();},600);
+  };
+
+  const notesEl=document.getElementById('dp-notes');
+  notesEl.value=store.notes[id]||'';
+  const saveHint=document.getElementById('dp-saved');
+  let saveTimer;
+  notesEl.oninput=()=>{
+    clearTimeout(saveTimer);
+    saveHint.textContent='Saving…';
+    saveTimer=setTimeout(()=>{
+      store.notes[id]=notesEl.value;
+      save();
+      saveHint.textContent='Saved ✓';
+      setTimeout(()=>{saveHint.textContent='';},2000);
+      // refresh card prof button to show notes indicator
+      renderOps();
+    },600);
+  };
+
+  // Delete button for custom ops
+  const existing=document.getElementById('dp-delete');
+  if(existing) existing.remove();
+  if(isCustom(id)){
+    const del=document.createElement('button');
+    del.className='delete-btn'; del.id='dp-delete';
+    del.textContent='Delete this operation';
+    del.onclick=()=>{
+      if(!confirm('Delete "'+getName(id)+'"? This cannot be undone.')) return;
+      store.custom=store.custom.filter(o=>o.id!==id);
+      save(); closeDetail(); renderMap(); renderOps(); updateStats();
+    };
+    document.querySelector('.dp-body').appendChild(del);
+  }
+
+  const profEl=document.getElementById('dp-prof');
+  const cur=getProf(id);
+  profEl.innerHTML=PC.filter(p=>p!=='—').map(p=>{
+    const ps=PS[p];
+    const active=cur===p;
+    return `<button class="dp-pbtn${active?' active':''}" data-p="${p}" style="background:${ps.bg};color:${ps.color};border-color:${ps.bd}">${p}</button>`;
+  }).join('');
+  profEl.querySelectorAll('.dp-pbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const p=btn.dataset.p;
+      store.prof[id]=p;
+      save();
+      updateStats();
+      profEl.querySelectorAll('.dp-pbtn').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+      // update card
+      if(view==='ops') renderOps();
+    });
+  });
+
+  document.getElementById('dpanel').classList.add('open');
+  document.getElementById('dovlay').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('dpanel').classList.remove('open');
+  document.getElementById('dovlay').classList.remove('open');
+  openOpId=null;
+}
+
+document.getElementById('dp-close').addEventListener('click',closeDetail);
+document.getElementById('dovlay').addEventListener('click',closeDetail);
+
+// NEXT DEADLINE COMPUTATION
+function computeNextDeadline(freq){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const f=(freq||'').toLowerCase();
+  const dayMatch=f.match(/monthly.*?(\d+)(st|nd|rd|th)/);
+  if(dayMatch){
+    const day=parseInt(dayMatch[1]);
+    let d=new Date(today.getFullYear(),today.getMonth(),day);
+    if(d<=today) d=new Date(today.getFullYear(),today.getMonth()+1,day);
+    return{date:d,rrule:'FREQ=MONTHLY;BYMONTHDAY='+day,label:'Monthly, by the '+day+'th'};
+  }
+  if(f.includes('twice yearly')||f.includes('jul 10')||f.includes('jan 10')){
+    const jul=new Date(today.getFullYear(),6,10);
+    const jan=new Date(today.getFullYear()+1,0,10);
+    return{date:jul>today?jul:jan,rrule:'FREQ=YEARLY;BYMONTH=1,7;BYMONTHDAY=10',label:'Twice yearly (Jul 10 + Jan 10)'};
+  }
+  if(f.includes('monthly')){
+    return{date:new Date(today.getFullYear(),today.getMonth()+1,1),rrule:'FREQ=MONTHLY',label:'Monthly'};
+  }
+  if(f.includes('quarterly')){
+    const quarters=[3,6,9,12].map(m=>new Date(today.getFullYear(),m,1));
+    quarters.push(new Date(today.getFullYear()+1,0,1));
+    const d=quarters.find(q=>q>today)||quarters[quarters.length-1];
+    return{date:d,rrule:'FREQ=MONTHLY;INTERVAL=3',label:'Quarterly'};
+  }
+  if(f.includes('weekly')&&f.includes('tue')){
+    const d=new Date(today); const gap=(2-d.getDay()+7)%7||7; d.setDate(d.getDate()+gap);
+    return{date:d,rrule:'FREQ=WEEKLY;BYDAY=TU',label:'Weekly (Tuesdays)'};
+  }
+  if(f.includes('weekly')){
+    const d=new Date(today); const gap=(1-d.getDay()+7)%7||7; d.setDate(d.getDate()+gap);
+    return{date:d,rrule:'FREQ=WEEKLY',label:'Weekly'};
+  }
+  if(f.includes('annual')&&f.includes('june')){
+    return{date:new Date(today.getFullYear()+1,5,30),rrule:'FREQ=YEARLY;BYMONTH=6',label:'Annual (June)'};
+  }
+  if(f.includes('annual')){
+    return{date:new Date(today.getFullYear()+1,today.getMonth(),today.getDate()),rrule:'FREQ=YEARLY',label:'Annual'};
+  }
+  if(f.includes('every other day')){
+    const d=new Date(today); d.setDate(d.getDate()+2);
+    return{date:d,rrule:'FREQ=DAILY;INTERVAL=2',label:'Every other day'};
+  }
+  return null;
+}
+
+function fmtDate(d){
+  if(!d) return '';
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+}
+function toIsoDate(d){
+  return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0');
+}
+function toIcsDate(d){
+  return d.getFullYear()+(d.getMonth()+1).toString().padStart(2,'0')+d.getDate().toString().padStart(2,'0');
+}
+
+// OP → CALENDAR MODAL
+let opCalCurrentOp=null;
+let opCalDeadline=null;
+
+function openOpCalModal(id){
+  const o=allOps().find(x=>x.id===id);
+  if(!o) return;
+  opCalCurrentOp=o;
+  opCalDeadline=computeNextDeadline(o.freq);
+
+  document.getElementById('op-cal-name').value=getName(id);
+  document.getElementById('op-cal-modal-title').textContent='Add "'+getName(id)+'" to Calendar';
+
+  // deadline preview
+  const prev=document.getElementById('op-cal-deadline-preview');
+  if(opCalDeadline){
+    prev.innerHTML=`<div class="dp-deadline-box">
+      <div>
+        <div class="dp-deadline-label">Next deadline</div>
+        <div class="dp-deadline-val">${fmtDate(opCalDeadline.date)}</div>
+        <div class="dp-deadline-freq">${opCalDeadline.label}</div>
+      </div>
+    </div>`;
+    const iso=toIsoDate(opCalDeadline.date);
+    document.getElementById('op-cal-once-date').value=iso;
+    document.getElementById('op-cal-recur-date').value=iso;
+    document.getElementById('op-cal-recur-trigger').style.display='';
+    document.getElementById('op-cal-recur-sub').textContent=opCalDeadline.label+' — your calendar app adds all future occurrences automatically.';
+  } else {
+    prev.innerHTML='';
+    document.getElementById('op-cal-once-date').value='';
+    document.getElementById('op-cal-recur-date').value='';
+    document.getElementById('op-cal-recur-trigger').style.display='none';
+  }
+
+  // collapse both forms
+  document.getElementById('op-cal-once-form').classList.remove('open');
+  document.getElementById('op-cal-recur-form').classList.remove('open');
+  document.getElementById('op-cal-modal').classList.add('open');
+}
+
+function closeOpCalModal(){document.getElementById('op-cal-modal').classList.remove('open');}
+document.getElementById('op-cal-close').addEventListener('click',closeOpCalModal);
+document.getElementById('op-cal-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeOpCalModal();});
+
+// toggle forms on click
+document.getElementById('op-cal-once-trigger').addEventListener('click',e=>{
+  if(e.target.closest('#op-cal-once-form')) return;
+  const f=document.getElementById('op-cal-once-form');
+  f.classList.toggle('open');
+  document.getElementById('op-cal-recur-form').classList.remove('open');
+});
+document.getElementById('op-cal-recur-trigger').addEventListener('click',e=>{
+  if(e.target.closest('#op-cal-recur-form')) return;
+  const f=document.getElementById('op-cal-recur-form');
+  f.classList.toggle('open');
+  document.getElementById('op-cal-once-form').classList.remove('open');
+});
+
+// generate ICS and download
+function downloadOpIcs(dateStr, rrule){
+  if(!opCalCurrentOp||!dateStr) return;
+  const name=document.getElementById('op-cal-name').value.trim()||getName(opCalCurrentOp.id);
+  const d=new Date(dateStr+'T12:00:00');
+  const ds=toIcsDate(d);
+  const nd=new Date(d); nd.setDate(nd.getDate()+1);
+  const nds=toIcsDate(nd);
+  const uid='badi-op-'+opCalCurrentOp.id+'-'+ds+'@badideas.fund';
+  const catLabel=CATS[opCalCurrentOp.cat]?.label||opCalCurrentOp.cat;
+  const desc=getDesc(opCalCurrentOp.id).replace(/\n/g,'\\n').replace(/,/g,'\\,');
+  let vevent=`BEGIN:VEVENT\r\nUID:${uid}\r\nDTSTART;VALUE=DATE:${ds}\r\nDTEND;VALUE=DATE:${nds}\r\nSUMMARY:${name.replace(/,/g,'\\,')}\r\nDESCRIPTION:${desc}\r\nCATEGORIES:${catLabel}\r\n`;
+  if(rrule) vevent+=`RRULE:${rrule}\r\n`;
+  vevent+=`END:VEVENT\r\n`;
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//BADideas.fund//Ops Map//EN\r\n${vevent}END:VCALENDAR`;
+  const blob=new Blob([ics],{type:'text/calendar'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=name.slice(0,40).replace(/[^a-zA-Z0-9]/g,'_')+(rrule?'_recurring':'')+'.ics';
+  a.click();
+  closeOpCalModal();
+}
+
+document.getElementById('op-cal-once-save').addEventListener('click',()=>{
+  downloadOpIcs(document.getElementById('op-cal-once-date').value, null);
+});
+document.getElementById('op-cal-recur-save').addEventListener('click',()=>{
+  downloadOpIcs(document.getElementById('op-cal-recur-date').value, opCalDeadline?.rrule||'FREQ=MONTHLY');
+});
+
+document.getElementById('dp-cal-btn').addEventListener('click',()=>{
+  if(openOpId!=null) openOpCalModal(openOpId);
+});
+
+// ADD OPERATION MODAL
+function openAddOp(){
+  document.getElementById('add-op-name').value='';
+  document.getElementById('add-op-desc').value='';
+  document.getElementById('add-op-freq').value='';
+  document.getElementById('add-op-owner').value='Zlata';
+  document.getElementById('add-op-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('add-op-name').focus(),50);
+}
+function closeAddOp(){document.getElementById('add-op-modal').classList.remove('open');}
+document.getElementById('add-op-close').addEventListener('click',closeAddOp);
+document.getElementById('add-op-cancel').addEventListener('click',closeAddOp);
+document.getElementById('add-op-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddOp();});
+document.getElementById('add-op-save').addEventListener('click',()=>{
+  const name=document.getElementById('add-op-name').value.trim();
+  if(!name){document.getElementById('add-op-name').focus();return;}
+  const op={
+    id: nextCustomId(),
+    cat: document.getElementById('add-op-cat').value,
+    op: name,
+    freq: document.getElementById('add-op-freq').value||'—',
+    owner: document.getElementById('add-op-owner').value||'Zlata',
+    priority: document.getElementById('add-op-pri').value,
+    status: document.getElementById('add-op-status').value,
+    desc: document.getElementById('add-op-desc').value.trim(),
+  };
+  store.custom.push(op);
+  save(); closeAddOp();
+  switchView('ops'); setActiveCat(op.cat);
+  updateStats();
+});
+
+// ADD CALENDAR EVENT MODAL
+function openAddCal(){
+  document.getElementById('new-cal-name').value='';
+  document.getElementById('new-cal-date').value='';
+  document.getElementById('new-cal-audience').value='';
+  document.getElementById('new-cal-notes').value='';
+  document.getElementById('add-cal-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('new-cal-name').focus(),50);
+}
+function closeAddCal(){document.getElementById('add-cal-modal').classList.remove('open');}
+document.getElementById('add-cal-close').addEventListener('click',closeAddCal);
+document.getElementById('add-cal-cancel').addEventListener('click',closeAddCal);
+document.getElementById('add-cal-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddCal();});
+document.getElementById('add-cal-save').addEventListener('click',()=>{
+  const name=document.getElementById('new-cal-name').value.trim();
+  const date=document.getElementById('new-cal-date').value;
+  if(!name||!date){
+    if(!name) document.getElementById('new-cal-name').focus();
+    else document.getElementById('new-cal-date').focus();
+    return;
+  }
+  const ev={
+    name,
+    date,
+    audience: document.getElementById('new-cal-audience').value||'Internal',
+    cat: document.getElementById('new-cal-cat').value,
+    notes: document.getElementById('new-cal-notes').value,
+    status:'',
+    custom:true,
+  };
+  store.calCustom.push(ev);
+  save(); closeAddCal(); renderCal(); updateStats();
+});
+
+// NAV
+document.querySelectorAll('.vtab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));
+document.getElementById('search').addEventListener('input',e=>{
+  q=e.target.value;
+  if(view==='map'&&q) switchView('ops');
+  if(view==='ops') renderOps();
+});
+
+// SAVE TO FILE
+document.getElementById('save-btn').addEventListener('click',()=>{
+  // Read the current HTML, replace the OPS desc/names and inject stored data as preload
+  const html=document.documentElement.outerHTML;
+  // Inject a script that pre-fills localStorage on next load
+  const preload=`<script id="preload-data">
+(function(){
+  var saved=${JSON.stringify(JSON.stringify(store))};
+  var existing=localStorage.getItem('badi_v2');
+  if(!existing||existing==='{}') localStorage.setItem('badi_v2',saved);
+  // Always overwrite so saved file reflects latest edits
+  localStorage.setItem('badi_v2',saved);
+})();
+<\/script>`;
+  // Insert before closing </body> or at end
+  const out=html.replace(/<script id="preload-data">[\s\S]*?<\/script>/,'').replace('</body>',preload+'</body>');
+  const blob=new Blob([out],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='BADideas_Operations_Map.html';
+  a.click();
+  document.getElementById('save-hint').textContent='Downloaded ✓ — replace your old file with this one';
+  setTimeout(()=>{document.getElementById('save-hint').textContent='';},4000);
+});
+
+// INIT
+renderPills();
+renderMap();
+updateStats();
+// Hide pills/search initially (map view)
+document.getElementById('cpills').style.display='none';
+document.querySelector('.sbox').style.display='none';
+</script>
