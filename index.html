@@ -643,19 +643,18 @@ const CATS={
   deals:     {label:'Investment Deals',         short:'Inv. Deals',   color:'#BE2424'},
   compliance:{label:'Compliance & Regulatory',  short:'Compliance',   color:'#B8720E'},
   portfolio: {label:'Portfolio Monitoring',     short:'Portfolio',    color:'#18754C'},
-  dealflow:  {label:'Deal Flow & Sourcing',     short:'Deal Flow',    color:'#BE5410'},
   syndicate: {label:'Syndicate Operations',     short:'Syndicate',    color:'#8227C4'},
-  spv:       {label:'SPV Management',           short:'SPV',          color:'#5B2D8E'},
   team:      {label:'Team & Admin',             short:'Team & Admin', color:'#127898'},
 };
 
-const PC=['—','Mastered','In progress','Started','Not started'];
+const PC=['—','Mastered','In progress','Started','Not started','Irrelevant'];
 const PS={
   '—':           {bg:'#F8F9FC',color:'#9CA3AF',bd:'#E2E5EF'},
   'Mastered':    {bg:'#D1FAE5',color:'#065F46',bd:'#6EE7B7'},
   'In progress': {bg:'#DBEAFE',color:'#1E3A8A',bd:'#93C5FD'},
   'Started':     {bg:'#FEF3C7',color:'#78350F',bd:'#FCD34D'},
   'Not started': {bg:'#FEE2E2',color:'#991B1B',bd:'#FCA5A5'},
+  'Irrelevant':  {bg:'#F1F5F9',color:'#64748B',bd:'#CBD5E1'},
 };
 
 const OPS=[
@@ -701,7 +700,7 @@ const OPS=[
    desc:'Stay on top of every active deal in the pipeline — from first Investment Committee review through to signed agreement and closed wire. This means tracking progress across legal review, compliance checks, signature collection, and final filing, and ensuring nothing stalls or falls through the cracks.'},
   {id:22,cat:'deals', op:'deals@ email monitoring', freq:'Weekly monitor / monthly cleanup', owner:'Zlata', priority:'Medium', status:'',
    desc:'Monitor the shared fund inbox (deals@) on a weekly basis. Route relevant inbound messages to the right team member, respond to straightforward enquiries directly, and do a monthly cleanup of old threads to keep the inbox organised.'},
-  {id:23,cat:'deals', op:'IC lineup selection', freq:'Weekly (Tue AM deadline)', owner:'Zlata', priority:'High', status:'',
+  {id:23,cat:'deals', op:'IC lineup selection', freq:'Weekly (Tuesday)', owner:'Zlata', priority:'High', status:'',
    desc:'Every Tuesday morning, select which companies will be reviewed at that week\'s Investment Committee session. Choose from the shortlisted companies in the pipeline management tool, ensuring there are enough companies queued. The deadline is Tuesday morning so the investment team has time to prepare.'},
   {id:24,cat:'deals', op:'IC badge / briefing prep', freq:'Weekly', owner:'Zlata', priority:'High', status:'',
    desc:'Prepare the briefing document (IC badge) for each company presenting at the weekly Investment Committee session. This gives the committee members the key information they need — company overview, stage, ask, and any relevant context — to evaluate the deal efficiently.'},
@@ -709,7 +708,7 @@ const OPS=[
    desc:'Before any deal goes to the Investment Committee, review the compliance annexes attached to the deal memo — specifically the sections on double funding checks, fraud risk assessment, and conflict of interest declarations. Flag any issues or gaps with the compliance lead before the IC session.'},
   {id:26,cat:'deals', op:'KYC / AML screening', freq:'Per deal', owner:'Zlata + Rainers', priority:'High', status:'',
    desc:'For each new investment, carry out the required Know Your Customer (KYC) and Anti-Money Laundering (AML) checks on the company\'s founders and key individuals. Run names through AML screening tools, review identification documents, check against sanctions lists, and upload all results to the designated folder. Required for every deal before investment can proceed.'},
-  {id:27,cat:'deals', op:'Double funding / EU check', freq:'Per ALTUM deal', owner:'Zlata', priority:'High', status:'',
+  {id:27,cat:'compliance', op:'Double funding / EU check', freq:'Per ALTUM deal', owner:'Zlata', priority:'High', status:'',
    desc:'For deals that involve co-investment from ALTUM (the Latvian state development finance institution), verify that the company has not already received overlapping EU funding from other sources. Search relevant public EU funding databases and the national business registry. Document the findings in the required compliance annex.'},
   {id:28,cat:'deals', op:'Investment agreement review', freq:'Per deal', owner:'Zlata (reviews)', priority:'High', status:'',
    desc:'Review the legal terms of each investment agreement — whether a SAFE (Simple Agreement for Future Equity), a convertible loan agreement, or an equity round side letter. Flag any unusual terms, risks, or missing provisions. For complex legal questions, coordinate with external legal counsel. The investment lead drafts the initial version.'},
@@ -717,11 +716,11 @@ const OPS=[
    desc:'Set up each investment document for electronic signing through the fund\'s e-signature platform. Send the document to all required signatories in the correct order, track who has signed and who hasn\'t, follow up with anyone who is slow to sign, and file the completed document as soon as all signatures are collected.'},
   {id:30,cat:'deals', op:'Signed docs filing (Drive)', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
    desc:'As soon as every required signature is collected on an investment document, file it immediately in the correct location in the shared document storage. A clean, well-organised archive is essential for audits, LP reporting, and any future due diligence requests from portfolio companies or acquirers.'},
-  {id:31,cat:'deals', op:'CLA maturity date tracking', freq:'Quarterly audit + ongoing', owner:'Zlata', priority:'High', status:'',
+  {id:31,cat:'portfolio', op:'CLA maturity date tracking', freq:'Quarterly audit + ongoing', owner:'Zlata', priority:'High', status:'',
    desc:'Maintain a complete and up-to-date record of all convertible loan agreements (CLAs) in the CRM, including their maturity dates. Regularly audit the list, update the status of each loan (converted to equity, extended, repaid, or status unknown), and proactively follow up on any loans that are approaching or past their maturity date.'},
-  {id:32,cat:'deals', op:'Power of attorney (AGMs)', freq:'Per AGM request', owner:'Zlata', priority:'Medium', status:'',
+  {id:32,cat:'portfolio', op:'Power of attorney (AGMs)', freq:'Per AGM request', owner:'Zlata', priority:'Medium', status:'',
    desc:'When a portfolio company requests that the fund participate in their Annual General Meeting, review the power of attorney document they send, sign it using the fund\'s qualified electronic signature (covering both the Latvian and Estonian fund entities), and return it to the company before the AGM date.'},
-  {id:33,cat:'deals', op:'US K-1 / W-8BEN-E reporting', freq:'Annual or on income event', owner:'Zlata', priority:'Low', status:'Done',
+  {id:33,cat:'compliance', op:'US K-1 / W-8BEN-E reporting', freq:'Annual or on income event', owner:'Zlata', priority:'Low', status:'Done',
    desc:'Maintain the fund\'s folder of US tax forms for US-incorporated portfolio companies. When a taxable income event occurs — such as an interest payment on a convertible note — sign and return the required US tax withholding form (W-8BEN-E). The full process is documented separately.'},
   {id:34,cat:'deals', op:'ALTUM iemaksas pieprasījums (CC)', freq:'Per ALTUM deal', owner:'Rainers (Zlata CC)', priority:'Medium', status:'',
    desc:'For each investment that involves ALTUM co-funding, the compliance lead prepares and submits a formal payment request to ALTUM. Zlata is copied on all submissions, tracks the status of each request, and follows up if the process is delayed or stalls.'},
@@ -748,26 +747,26 @@ const OPS=[
   {id:44,cat:'portfolio', op:'Investor intros / fundraising support', freq:'As needed', owner:'Zlata', priority:'Medium', status:'',
    desc:'When a portfolio company is actively raising a new funding round, help connect them with relevant investors from the fund\'s network. Start with a short, personalised introduction — only share the full pitch deck if the investor expresses genuine interest. Track outreach to avoid contacting the same person twice.'},
 
-  {id:45,cat:'dealflow', op:'Deal batch creation (Delfalā)', freq:'Every other day', owner:'Zlata', priority:'High', status:'',
+  {id:45,cat:'deals', op:'Deal batch creation (Delfalā)', freq:'Every other day', owner:'Zlata', priority:'High', status:'',
    desc:'Every other day, pull newly submitted companies from the Delfalā deal sourcing platform and add them to the Stage 4 pipeline in the fund\'s CRM. This is the primary inbound channel for new deal flow and keeps the pipeline active and fresh.'},
-  {id:46,cat:'dealflow', op:'Stage 4 funnel cleanup', freq:'Weekly', owner:'Zlata', priority:'Medium', status:'',
+  {id:46,cat:'deals', op:'Stage 4 funnel cleanup', freq:'Weekly', owner:'Zlata', priority:'Medium', status:'',
    desc:'Weekly maintenance of the active deal pipeline. Remove companies that have been in Stage 4 for more than two months without progressing (mark as Lost). Send reminder emails to companies that applied between one week and two months ago. Keep the "reminder sent" status up to date in the CRM so nothing is chased twice.'},
-  {id:47,cat:'dealflow', op:'Airtable / portal interface redesign', freq:'—', owner:'Zlata & Rainers', priority:'Medium', status:'In progress',
+  {id:47,cat:'compliance', op:'Airtable / portal interface redesign', freq:'—', owner:'Zlata & Rainers', priority:'Medium', status:'In progress',
    desc:'An active project to rebuild and improve the fund\'s operational interfaces in Airtable and the connected investor portal. Covers the deal onboarding flow, Launchpad fee tracking, Investment Committee presentation format, automatic triggers to the investor portal when a deal closes, and automation of compliance document preparation.'},
-  {id:48,cat:'dealflow', op:'Automations — build & maintain', freq:'Ongoing', owner:'Zlata', priority:'Medium', status:'',
+  {id:48,cat:'team', op:'Automations — build & maintain', freq:'Ongoing', owner:'Zlata', priority:'Medium', status:'',
    desc:'Monitor all existing automations that keep the fund\'s day-to-day operations running — including pipeline reminders, calendar syncs between tools, and data triggers between the CRM and other platforms. Build new automations when repetitive manual processes are identified. Fix any that break.'},
-  {id:49,cat:'dealflow', op:'Platform / Supabase process doc', freq:'—', owner:'Zlata (ops section)', priority:'Medium', status:'In progress',
+  {id:49,cat:'team', op:'Platform / Supabase process doc', freq:'—', owner:'Zlata (ops section)', priority:'Medium', status:'In progress',
    desc:'Document the full operational workflow for the fund\'s internal platform from an operations perspective. Zlata covers the operations side; the compliance lead covers the regulatory side. The combined document feeds into the technical specification for building the system.'},
 
-  {id:50,cat:'spv', op:'SPV round management', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
+  {id:50,cat:'deals', op:'SPV round management', freq:'Per deal', owner:'Zlata', priority:'High', status:'',
    desc:'When a new syndicate deal opens, manage the full round process: coordinate with the SPV administrator, run identity and business verification checks on syndicate investors, track all document signatures and incoming wire transfers, and keep investors informed throughout the process. The full operational playbook is documented separately.'},
   {id:51,cat:'syndicate', op:'Syndicate investor communications', freq:'Ad hoc', owner:'Zlata', priority:'High', status:'',
    desc:'Respond to incoming questions and requests from syndicate investors. Common enquiries include questions about exit timelines or valuations, requests for tax invoices or transaction documents, questions about portfolio company performance, and requests to sell or transfer their position in a company.'},
   {id:52,cat:'syndicate', op:'Syndicate exit management', freq:'Per exit', owner:'Zlata', priority:'High', status:'',
    desc:'When a syndicate investment is exited — through a secondary sale or company acquisition — coordinate the full exit process: agree on the final valuation, prepare and execute all required legal documents, arrange the wire transfer of proceeds to investors, and update all records in the CRM and investor portal.'},
-  {id:53,cat:'spv', op:'SPV annual audit', freq:'Annual', owner:'Zlata', priority:'Medium', status:'',
+  {id:53,cat:'compliance', op:'SPV annual audit', freq:'Annual', owner:'Zlata', priority:'Medium', status:'',
    desc:'Once a year, review all SPV (Special Purpose Vehicle) records to ensure everything is in order. Cross-check the document archive against the database, confirm that all investor documents are present and correctly filed, and flag any gaps or inconsistencies that need to be resolved.'},
-  {id:54,cat:'spv', op:'SPV document cleanup', freq:'—', owner:'Zlata', priority:'Medium', status:'In progress',
+  {id:54,cat:'syndicate', op:'SPV document cleanup', freq:'—', owner:'Zlata', priority:'Medium', status:'In progress',
    desc:'An ongoing project to bring all historical syndicate documents into a clean, organised state. Involves downloading documents in bulk, matching them to the correct companies and investor records, ensuring all documents include the required legal disclaimers, and reconciling any outstanding deposit records.'},
   {id:55,cat:'syndicate', op:'Syndicate LP notifications (follow-on)', freq:'Per round', owner:'Zlata', priority:'Medium', status:'',
    desc:'When a portfolio company in the syndicate opens a new follow-on funding round, proactively notify existing syndicate investors about the opportunity to invest again. Send personalised deal announcements via email to relevant investors.'},
@@ -858,6 +857,11 @@ const CAL=[
   {name:'BIFI audit',                               date:'2027-02-28',audience:'Internal',   cat:'finance',    status:'',     notes:'Annual — alongside BIFI annual report'},
   // Syndicate portfolio valuation
   {name:'Syndicate portfolio valuation (IPEV)',     date:'2027-03-31',audience:'Internal',   cat:'syndicate',  status:'',     notes:'Annual — March; IPEV methodology'},
+  // LP Q Report — 30th of first month of each quarter
+  {name:'LP Q Report',                              date:'2026-07-30',audience:'LPs',        cat:'lp',         status:'',     notes:'Full quarterly report — all 6 steps'},
+  {name:'LP Q Report',                              date:'2026-10-30',audience:'LPs',        cat:'lp',         status:'',     notes:'Full quarterly report — all 6 steps'},
+  {name:'LP Q Report',                              date:'2027-01-30',audience:'LPs',        cat:'lp',         status:'',     notes:'Full quarterly report — all 6 steps'},
+  {name:'LP Q Report',                              date:'2027-04-30',audience:'LPs',        cat:'lp',         status:'',     notes:'Full quarterly report — all 6 steps'},
   // LP alignment call with Ben — 12th of first month of each quarter
   {name:'LP alignment call with Ben',               date:'2026-07-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
   {name:'LP alignment call with Ben',               date:'2026-10-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
@@ -1070,16 +1074,15 @@ function renderVmap(){
 
   // Dependencies — directional arrows between categories
   const DEPS=[
-    {from:'dealflow',to:'deals',     label:'sourcing'},
-    {from:'deals',   to:'portfolio', label:'closed deals'},
-    {from:'deals',   to:'compliance',label:'KYC / AML'},
-    {from:'deals',   to:'spv',       label:'SPV structures'},
-    {from:'portfolio',to:'lp',       label:'KPI data'},
-    {from:'portfolio',to:'finance',  label:'valuations'},
-    {from:'finance', to:'lp',        label:'financials'},
-    {from:'compliance',to:'finance', label:'regulatory'},
-    {from:'spv',     to:'syndicate', label:'vehicles'},
-    {from:'lp',      to:'team',      label:'reporting'},
+    {from:'deals',    to:'portfolio', label:'closed deals'},
+    {from:'deals',    to:'compliance',label:'KYC / AML'},
+    {from:'deals',    to:'syndicate', label:'SPV structures'},
+    {from:'portfolio',to:'lp',        label:'KPI data'},
+    {from:'portfolio',to:'finance',   label:'valuations'},
+    {from:'finance',  to:'lp',        label:'financials'},
+    {from:'compliance',to:'finance',  label:'regulatory'},
+    {from:'syndicate',to:'lp',        label:'investor updates'},
+    {from:'lp',       to:'team',      label:'reporting'},
   ];
 
   const catKeys=Object.keys(CATS);
