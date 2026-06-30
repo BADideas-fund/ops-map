@@ -236,6 +236,42 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
   .dpanel{width:100%;right:-100%}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ── DASHBOARD ─────────────────────────────────────────── */
+#dash-view{padding:28px 32px;display:flex;flex-direction:column;gap:24px}
+.dash-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;display:flex;flex-direction:column;gap:6px}
+.dash-card-val{font-size:36px;font-weight:700;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.dash-card-label{font-size:11.5px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.06em}
+.dash-card-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.dash-card.accent-red .dash-card-val{color:#BE2424}
+.dash-card.accent-orange .dash-card-val{color:#B8720E}
+.dash-mid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+.dash-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 24px}
+.dash-panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:16px}
+.dash-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;cursor:pointer}
+.dash-bar-row:hover .dash-bar-fill{filter:brightness(1.08)}
+.dash-bar-label{font-size:12px;color:var(--text);width:110px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.dash-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.dash-bar-count{font-size:12px;font-weight:600;color:var(--text2);width:24px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+.dash-deadline-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.dash-deadline-row:last-child{border-bottom:none}
+.dash-dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dash-dl-name{flex:1;font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-dl-date{font-size:11.5px;color:var(--text2);flex-shrink:0;font-variant-numeric:tabular-nums}
+.dash-dl-days{font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.dash-dl-days.soon{background:#FEF2F2;color:#BE2424}
+.dash-dl-days.near{background:#FFFBEB;color:#B8720E}
+.dash-dl-days.ok{background:#F0FDF4;color:#18754C}
+.dash-bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dash-owner-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.dash-owner-name{font-size:12px;color:var(--text);width:80px;flex-shrink:0}
+/* ── VISUAL MAP (TREEMAP) ─────────────────────────────── */
+#vmap-view{padding:28px 32px}
+#vmap-canvas-wrap{width:100%;position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+#vmap-svg{width:100%;display:block}
+.vmap-cell{cursor:pointer;transition:opacity .12s}
+.vmap-cell:hover{opacity:.88}
 </style>
 
 <!-- LOCK SCREEN -->
@@ -477,7 +513,8 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 
 <div class="nav">
   <div class="vtabs">
-    <button class="vtab active" data-view="map">Map Overview</button>
+    <button class="vtab active" data-view="dash">Dashboard</button>
+    <button class="vtab" data-view="map">Visual Map</button>
     <button class="vtab" data-view="ops">All Operations</button>
     <button class="vtab" data-view="cal">Compliance Calendar</button>
   </div>
@@ -488,7 +525,9 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
   </div>
 </div>
 
-<div id="map-view"></div>
+<div id="dash-view"></div>
+<div id="vmap-view" class="hidden"></div>
+<div id="map-view" class="hidden"></div>
 <div id="ops-view" class="hidden"></div>
 <div id="cal-view" class="hidden">
   <div id="cal-month-view" style="display:none"></div>
@@ -576,7 +615,7 @@ async function pullFromCloud(){
       if(!store.calDate)   store.calDate={};
       if(!store.priority)  store.priority={};
       save();
-      renderMap(); renderOps(); renderCal(); updateStats();
+      renderDash(); renderOps(); renderCal(); updateStats();
       syncHint('Loaded latest from cloud','rgba(255,255,255,.5)');
     }
   }catch(e){/* offline — use localStorage silently */}
@@ -828,7 +867,7 @@ const CAL=[
 ];
 
 // STATE
-let view='map', activeCat='all', q='';
+let view='dash', activeCat='all', q='';
 let openOpId=null;
 const store=JSON.parse(localStorage.getItem('badi_v2')||'{}');
 // store = { prof:{id:val}, notes:{id:val}, names:{id:val} }
@@ -889,7 +928,185 @@ function updateStats(){
   document.getElementById('sRated').textContent=rated+'/'+all.length;
 }
 
-// MAP VIEW
+// DASHBOARD
+function renderDash(){
+  const el=document.getElementById('dash-view');
+  const all=allOps();
+  const allCal=[...CAL,...store.calCustom];
+  const now=TODAY;
+  const in90=new Date(TODAY); in90.setDate(in90.getDate()+90);
+  const in30=new Date(TODAY); in30.setDate(in30.getDate()+30);
+  const upcoming=allCal.filter(c=>c.date&&new Date(c.date)>=now&&new Date(c.date)<=in90).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,9);
+  const highCount=all.filter(o=>getPriority(o.id)==='High').length;
+  const profSet=all.filter(o=>store.prof[o.id]&&store.prof[o.id]!=='—').length;
+  const totalUpcoming=allCal.filter(c=>c.date&&new Date(c.date)>=now&&new Date(c.date)<=in90).length;
+  const in30Count=allCal.filter(c=>c.date&&new Date(c.date)>=now&&new Date(c.date)<=in30).length;
+  const maxOps=Math.max(...Object.keys(CATS).map(k=>all.filter(o=>o.cat===k).length),1);
+  const ownerCounts={};
+  OWNERS.forEach(o=>ownerCounts[o]=0);
+  all.forEach(o=>getOwners(o.id).forEach(own=>{if(ownerCounts[own]!==undefined)ownerCounts[own]++;}));
+  const maxOwner=Math.max(...Object.values(ownerCounts),1);
+  const profCounts={};
+  PC.forEach(p=>profCounts[p]=0);
+  all.forEach(o=>{const p=getProf(o.id);if(p)profCounts[p]=(profCounts[p]||0)+1;});
+
+  el.innerHTML=`
+  <div class="dash-cards">
+    <div class="dash-card">
+      <div class="dash-card-val">${all.length}</div>
+      <div class="dash-card-label">Total Operations</div>
+      <div class="dash-card-sub">across ${Object.keys(CATS).length} categories</div>
+    </div>
+    <div class="dash-card accent-red">
+      <div class="dash-card-val">${highCount}</div>
+      <div class="dash-card-label">High Priority</div>
+      <div class="dash-card-sub">${Math.round(highCount/all.length*100)}% of all operations</div>
+    </div>
+    <div class="dash-card accent-orange">
+      <div class="dash-card-val">${totalUpcoming}</div>
+      <div class="dash-card-label">Deadlines — 90 Days</div>
+      <div class="dash-card-sub">${in30Count} within next 30 days</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-val">${profSet}<span style="font-size:20px;font-weight:400;color:var(--text2)">/${all.length}</span></div>
+      <div class="dash-card-label">Proficiency Set</div>
+      <div class="dash-card-sub">${Math.round(profSet/all.length*100)}% coverage</div>
+    </div>
+  </div>
+  <div class="dash-mid">
+    <div class="dash-panel">
+      <div class="dash-panel-title">Operations by Category</div>
+      ${Object.entries(CATS).map(([key,cat])=>{
+        const count=all.filter(o=>o.cat===key).length;
+        const highC=all.filter(o=>o.cat===key&&getPriority(o.id)==='High').length;
+        const pct=Math.round(count/maxOps*100);
+        return `<div class="dash-bar-row" data-cat="${key}">
+          <div class="dash-bar-label" title="${cat.label}">${cat.short}</div>
+          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%;background:${cat.color}"></div></div>
+          <div class="dash-bar-count">${count}</div>
+          ${highC>0?`<div style="font-size:10px;font-weight:700;color:#BE2424;width:34px;flex-shrink:0">${highC}×H</div>`:`<div style="width:34px;flex-shrink:0"></div>`}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="dash-panel">
+      <div class="dash-panel-title">Upcoming Deadlines</div>
+      ${upcoming.length===0?`<div style="color:var(--text2);font-size:13px">No deadlines in next 90 days</div>`:
+        upcoming.map(c=>{
+          const d=new Date(c.date);
+          const days=Math.ceil((d-now)/(1000*60*60*24));
+          const cat=CATS[c.cat]||{color:'#999'};
+          const dayClass=days<=14?'soon':days<=30?'near':'ok';
+          const dateStr=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+          return `<div class="dash-deadline-row">
+            <div class="dash-dl-dot" style="background:${cat.color}"></div>
+            <div class="dash-dl-name" title="${c.name}">${c.name}</div>
+            <div class="dash-dl-date">${dateStr}</div>
+            <div class="dash-dl-days ${dayClass}">${days}d</div>
+          </div>`;
+        }).join('')}
+    </div>
+  </div>
+  <div class="dash-bottom">
+    <div class="dash-panel">
+      <div class="dash-panel-title">Owner Workload</div>
+      ${OWNERS.map(own=>{
+        const count=ownerCounts[own]||0;
+        const pct=Math.round(count/maxOwner*100);
+        return `<div class="dash-owner-row">
+          <div class="dash-owner-name">${own}</div>
+          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%;background:#1E48C2"></div></div>
+          <div class="dash-bar-count">${count}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="dash-panel">
+      <div class="dash-panel-title">Proficiency Distribution</div>
+      ${PC.map(p=>{
+        const count=profCounts[p]||0;
+        const pct=all.length?Math.round(count/all.length*100):0;
+        const ps=PS[p];
+        return `<div class="dash-owner-row">
+          <div class="dash-owner-name" style="color:${ps.color||'var(--text)'}">${p}</div>
+          <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%;background:${ps.bd||'#ccc'}"></div></div>
+          <div class="dash-bar-count">${count}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  el.querySelectorAll('.dash-bar-row[data-cat]').forEach(row=>{
+    row.addEventListener('click',()=>{switchView('ops');setActiveCat(row.dataset.cat);});
+  });
+}
+
+// VISUAL MAP (TREEMAP)
+function renderVmap(){
+  const el=document.getElementById('vmap-view');
+  const all=allOps();
+  const W=1000,H=560,PAD=3;
+  const items=Object.entries(CATS).map(([key,cat])=>({
+    key,cat,
+    value:Math.max(all.filter(o=>o.cat===key).length,1),
+    count:all.filter(o=>o.cat===key).length,
+    high:all.filter(o=>o.cat===key&&getPriority(o.id)==='High').length,
+  }));
+  items.sort((a,b)=>b.value-a.value);
+  const rects=[];
+  function layout(its,x,y,w,h){
+    if(!its.length)return;
+    if(its.length===1){rects.push({...its[0],x,y,w,h});return;}
+    const total=its.reduce((s,i)=>s+i.value,0);
+    let sum=0,split=0;
+    for(let i=0;i<its.length;i++){sum+=its[i].value;if(sum>=total/2){split=i+1;break;}}
+    if(!split||split===its.length)split=Math.floor(its.length/2)||1;
+    const a=its.slice(0,split),b=its.slice(split);
+    const ratio=a.reduce((s,i)=>s+i.value,0)/total;
+    if(w>=h){layout(a,x,y,w*ratio,h);layout(b,x+w*ratio,y,w*(1-ratio),h);}
+    else{layout(a,x,y,w,h*ratio);layout(b,x,y+h*ratio,w,h*(1-ratio));}
+  }
+  layout(items,0,0,W,H);
+  const cells=rects.map(r=>{
+    const rx=r.x+PAD,ry=r.y+PAD,rw=r.w-PAD*2,rh=r.h-PAD*2;
+    if(rw<4||rh<4)return'';
+    const fs=Math.min(15,Math.max(9,Math.sqrt(rw*rh)/9));
+    const showSub=rh>60&&rw>80;
+    const showHigh=r.high>0&&rh>80&&rw>60;
+    const ops=all.filter(o=>o.cat===r.key);
+    const dotCols=Math.max(1,Math.floor((rw-16)/13));
+    const dotRows=Math.max(0,Math.floor((rh-fs*2-30)/13));
+    const maxDots=dotCols*dotRows;
+    const dots=rh>100&&rw>80?ops.slice(0,Math.min(maxDots,ops.length)):[];
+    return `<g class="vmap-cell" data-cat="${r.key}" transform="translate(${rx},${ry})">
+      <rect x="0" y="0" width="${rw}" height="${rh}" fill="${r.cat.color}" rx="6"/>
+      <rect x="0" y="0" width="${rw}" height="${rh}" fill="rgba(0,0,0,0.15)" rx="6"/>
+      ${dots.map((_,i)=>{
+        const cx=10+(i%dotCols)*13;
+        const cy=rh-12-Math.floor(i/dotCols)*13;
+        return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="rgba(255,255,255,0.28)"/>`;
+      }).join('')}
+      <text x="12" y="${12+fs}" font-size="${fs}px" font-weight="700" fill="rgba(255,255,255,0.95)" font-family="Inter,system-ui,sans-serif">${r.cat.label}</text>
+      ${showSub?`<text x="12" y="${16+fs*2}" font-size="${Math.max(8,fs-2)}px" fill="rgba(255,255,255,0.6)" font-family="Inter,system-ui,sans-serif">${r.count} operation${r.count!==1?'s':''}</text>`:''}
+      ${showHigh?`<rect x="${rw-52}" y="${rh-26}" width="46" height="18" rx="3" fill="rgba(255,255,255,0.18)"/>
+      <text x="${rw-29}" y="${rh-13}" font-size="9.5px" font-weight="700" fill="rgba(255,255,255,0.9)" text-anchor="middle" font-family="Inter,system-ui,sans-serif">${r.high} HIGH</text>`:''}
+      <text x="${rw-10}" y="${rh-10}" font-size="${Math.min(40,rh*0.35)}px" font-weight="800" fill="rgba(255,255,255,0.12)" text-anchor="end" font-family="Inter,system-ui,sans-serif">${r.count}</text>
+    </g>`;
+  }).join('');
+  el.innerHTML=`
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="font-size:12.5px;color:var(--text2)">Cell size = number of operations. Click any area to explore.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-left:auto">
+        ${Object.entries(CATS).map(([k,c])=>`<span class="vmap-legend" data-cat="${k}" style="display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text2);cursor:pointer"><span style="width:8px;height:8px;border-radius:2px;background:${c.color};display:inline-block;flex-shrink:0"></span>${c.short}</span>`).join('')}
+      </div>
+    </div>
+    <div id="vmap-canvas-wrap">
+      <svg id="vmap-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${cells}</svg>
+    </div>`;
+  el.querySelectorAll('.vmap-cell,.vmap-legend').forEach(n=>{
+    n.addEventListener('click',()=>{switchView('ops');setActiveCat(n.dataset.cat);});
+  });
+}
+
+// MAP VIEW (LEGACY GRID — now used as tab "Visual Map" is vmap)
 function renderMap(){
   const el=document.getElementById('map-view');
   el.innerHTML='';
@@ -1389,7 +1606,9 @@ function setActiveCat(key){activeCat=key;renderPills();if(view==='ops')renderOps
 // VIEW SWITCHING
 function switchView(v){
   view=v;
-  document.getElementById('map-view').classList.toggle('hidden',v!=='map');
+  document.getElementById('dash-view').classList.toggle('hidden',v!=='dash');
+  document.getElementById('vmap-view').classList.toggle('hidden',v!=='map');
+  document.getElementById('map-view').classList.toggle('hidden',true); // legacy, not used as tab
   document.getElementById('ops-view').classList.toggle('hidden',v!=='ops');
   document.getElementById('cal-view').classList.toggle('hidden',v!=='cal');
   document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
@@ -1398,6 +1617,8 @@ function switchView(v){
   document.querySelector('.sbox').style.display=showPills?'flex':'none';
   if(v==='ops') renderOps();
   else if(v==='cal') renderCal();
+  else if(v==='dash') renderDash();
+  else if(v==='map') renderVmap();
 }
 
 // DETAIL PANEL
@@ -1551,7 +1772,7 @@ function openDetail(id){
     if(!confirm('Delete "'+getName(id)+'"? This cannot be undone.')) return;
     if(isCustom(id)) store.custom=store.custom.filter(o=>o.id!==id);
     else store.hidden.push(id);
-    save(); closeDetail(); renderMap(); renderOps(); updateStats();
+    save(); closeDetail(); renderDash(); renderOps(); updateStats();
   };
   document.querySelector('.dp-body').appendChild(del);
 
@@ -1866,7 +2087,7 @@ document.getElementById('search').addEventListener('input',e=>{
 
 // INIT
 renderPills();
-renderMap();
+renderDash();
 updateStats();
 // Hide pills/search initially (map view)
 document.getElementById('cpills').style.display='none';
