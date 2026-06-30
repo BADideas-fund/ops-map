@@ -72,6 +72,8 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 .oc-ft{border-top:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .stag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px}
 .sdone{background:#D1FAE5;color:#065F46}.sprog{background:#DBEAFE;color:#1E3A8A}.sblok{background:#FEE2E2;color:#991B1B}
+.op-stbtn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:3px 8px;border:1px solid;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s;user-select:none}
+.op-stbtn:hover{filter:brightness(.92)}
 .pbtn{font-size:10.5px;font-weight:600;padding:3px 8px;cursor:pointer;border:1px solid;white-space:nowrap;transition:opacity .1s;font-family:inherit}
 .pbtn:hover{opacity:.8}
 .no-r{grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text2)}
@@ -774,6 +776,7 @@ if(!store.calCustom)  store.calCustom=[];  // [{name,date,audience,cat,notes}]
 if(!store.calStatus)  store.calStatus={};  // {key: 'Done'|'In progress'|''}
 if(!store.calDate)    store.calDate={};    // {key: 'YYYY-MM-DD'} — date overrides
 if(!store.priority)   store.priority={};   // {id: 'High'|'Medium'|'Low'} — priority overrides
+if(!store.opStatus)   store.opStatus={};   // {id: ''|'In progress'|'Done'} — op status overrides
 function save(){localStorage.setItem('badi_v2',JSON.stringify(store))}
 
 function allOps(){return [...OPS,...store.custom];}
@@ -784,6 +787,15 @@ function getName(id){return store.names[id]||allOps().find(o=>o.id===id)?.op||''
 function getDesc(id){const o=allOps().find(x=>x.id===id);return store.descs[id]||(o?o.desc:'')||''}
 function isCustom(id){return store.custom.some(o=>o.id===id)}
 function getPriority(id){return store.priority[id]||allOps().find(o=>o.id===id)?.priority||'Medium'}
+function getOpStatus(id){
+  if(store.opStatus.hasOwnProperty(id)) return store.opStatus[id];
+  return allOps().find(o=>o.id===id)?.status||'';
+}
+function cycleOpStatus(id){
+  const cur=getOpStatus(id);
+  store.opStatus[id]=cur===''?'In progress':cur==='In progress'?'Done':'';
+  save();
+}
 
 // STATS
 function updateStats(){
@@ -860,7 +872,12 @@ function renderOps(){
     const p=getProf(o.id);
     const ps=PS[p];
     const pri=getPriority(o.id);
-    const stag=o.status?`<span class="stag ${o.status==='Done'?'sdone':o.status==='In progress'?'sprog':'sblok'}">${o.status}</span>`:'<span></span>';
+    const st=getOpStatus(o.id);
+    const stag=st==='Done'
+      ?`<button class="op-stbtn cst-done"  data-sid="${o.id}">✓ Done</button>`
+      :st==='In progress'
+      ?`<button class="op-stbtn cst-prog"  data-sid="${o.id}">● In progress</button>`
+      :`<button class="op-stbtn cst-none"  data-sid="${o.id}">○ Not started</button>`;
     const hasNotes=store.notes[o.id]?'🗒 ':'';
     return `<div class="ocard" style="border-left-color:${cat.color}" data-id="${o.id}">
       <div class="oc-top">
@@ -882,6 +899,13 @@ function renderOps(){
     </div>`;
   }).join('')+'</div>';
 
+  wrap.querySelectorAll('.op-stbtn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      cycleOpStatus(parseInt(btn.dataset.sid));
+      renderOps();
+    });
+  });
   wrap.querySelectorAll('.ocard').forEach(card=>{
     card.addEventListener('click',()=>openDetail(parseInt(card.dataset.id)));
   });
