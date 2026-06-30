@@ -882,6 +882,7 @@ if(!store.calDate)    store.calDate={};    // {key: 'YYYY-MM-DD'} — date overr
 if(!store.calDesc)    store.calDesc={};    // {key: string} — cal item description overrides
 if(!store.calProf)    store.calProf={};    // {key: string} — cal item proficiency
 if(!store.calNames)   store.calNames={};   // {key: string} — cal item name overrides
+if(!store.calCat)     store.calCat={};     // {key: string} — cal item category overrides
 if(!store.hidden)     store.hidden=[];     // [id, ...] — built-in ops hidden by user
 if(!store.owners)     store.owners={};    // {id: ['Zlata', ...]} — owner overrides
 if(!store.opFreq)     store.opFreq={};    // {id: string} — frequency overrides
@@ -1300,13 +1301,13 @@ function renderCalMonth(){
       // Show colored dots for quick overview
       html+=`<div class="mcal-dots">`;
       items.slice(0,7).forEach(item=>{
-        const cat=CATS[item.cat]||{color:'#888'};
+        const cat=CATS[store.calCat&&store.calCat[item._key]||item.cat]||{color:'#888'};
         html+=`<div class="mcal-dot" style="background:${cat.color}" data-key="${item._key}" title="${item.name}"></div>`;
       });
       html+=`</div>`;
       // Show event labels (up to 2)
       showItems.slice(0,2).forEach(item=>{
-        const cat=CATS[item.cat]||{color:'#888'};
+        const cat=CATS[store.calCat&&store.calCat[item._key]||item.cat]||{color:'#888'};
         html+=`<div class="mcal-event" style="background:${cat.color}18;color:${cat.color}" data-key="${item._key}">${store.calNames[item._key]||item.name}</div>`;
       });
       if(extra>0) html+=`<div class="mcal-more">+${extra} more</div>`;
@@ -1376,7 +1377,7 @@ function renderCalList(){
       const d=new Date(item.date+'T12:00:00');
       const dayStr=d.getDate().toString().padStart(2,'0')+' '+monthNames[d.getMonth()];
       const days=daysUntil(item.date);
-      const cat=CATS[item.cat]||{color:'#888'};
+      const cat=CATS[store.calCat&&store.calCat[item._key]||item.cat]||{color:'#888'};
       let urg='';
       if(days>=0&&days<=14) urg=`<span class="cal-urg urg-now">${days===0?'TODAY':days+'d'}</span>`;
       else if(days>14&&days<=30) urg=`<span class="cal-urg urg-soon">${days}d</span>`;
@@ -1447,9 +1448,29 @@ function openCalDetail(key, allCalItems){
   const item=allCalItems.find(x=>x._key===key);
   if(!item) return;
 
-  const cat=CATS[item.cat]||CATS['compliance'];
+  const curCatKey=store.calCat&&store.calCat[key]?store.calCat[key]:item.cat;
+  const cat=CATS[curCatKey]||CATS['compliance'];
   const badge=document.getElementById('dp-badge');
-  badge.textContent=cat.label;
+  // Render badge as a styled select
+  badge.innerHTML='';
+  const catSel=document.createElement('select');
+  catSel.style.cssText=`font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border:none;outline:none;cursor:pointer;padding:0;background:transparent;color:${cat.color}`;
+  Object.entries(CATS).forEach(([k,c])=>{
+    const opt=document.createElement('option');
+    opt.value=k; opt.textContent=c.label;
+    if(k===curCatKey) opt.selected=true;
+    catSel.appendChild(opt);
+  });
+  catSel.addEventListener('change',e=>{
+    if(!store.calCat) store.calCat={};
+    store.calCat[key]=e.target.value;
+    save(); renderCal();
+    const nc=CATS[e.target.value];
+    badge.style.background=nc.color+'18';
+    badge.style.color=nc.color;
+    catSel.style.color=nc.color;
+  });
+  badge.appendChild(catSel);
   badge.style.background=cat.color+'18';
   badge.style.color=cat.color;
 
@@ -1687,10 +1708,19 @@ function openDetail(id){
   function refreshDeadlineBox(){
     const freq=document.getElementById('dp-freq').value;
     const dateOverride=document.getElementById('dp-date').value;
-    const dl=dateOverride
-      ? {date:dateOverride, label:freq}
-      : computeNextDeadline(freq);
     const wrap=document.getElementById('dp-deadline-box-wrap');
+    // First: look up the nearest upcoming calendar entry for this op
+    const opName=getName(id);
+    const allCal=[...CAL,...store.calCustom];
+    const now=TODAY;
+    const calEntry=allCal
+      .filter(c=>c.date&&c.name.toLowerCase().startsWith(opName.toLowerCase())&&new Date(c.date)>=now)
+      .sort((a,b)=>new Date(a.date)-new Date(b.date))[0];
+    const dl=calEntry
+      ? {date:calEntry.date, label:freq}
+      : dateOverride
+        ? {date:dateOverride, label:freq}
+        : computeNextDeadline(freq);
     wrap.innerHTML=dl?`<div class="dp-deadline-box">
       <div>
         <div class="dp-deadline-label">Next deadline</div>
