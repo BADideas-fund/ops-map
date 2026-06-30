@@ -800,6 +800,8 @@ if(!store.calProf)    store.calProf={};    // {key: string} — cal item profici
 if(!store.calNames)   store.calNames={};   // {key: string} — cal item name overrides
 if(!store.hidden)     store.hidden=[];     // [id, ...] — built-in ops hidden by user
 if(!store.owners)     store.owners={};    // {id: ['Zlata', ...]} — owner overrides
+if(!store.opFreq)     store.opFreq={};    // {id: string} — frequency overrides
+if(!store.opDate)     store.opDate={};    // {id: 'YYYY-MM-DD'} — next deadline date overrides
 if(!store.priority)   store.priority={};   // {id: 'High'|'Medium'|'Low'} — priority overrides
 if(!store.opStatus)   store.opStatus={};   // {id: ''|'In progress'|'Done'} — op status overrides
 function save(){localStorage.setItem('badi_v2',JSON.stringify(store))}
@@ -1256,18 +1258,24 @@ function openDetail(id){
   };
 
   const fields=document.getElementById('dp-fields');
-  const dl=computeNextDeadline(o.freq);
-  const dlBox=dl?`<div class="dp-deadline-box" style="grid-column:1/-1">
-    <div>
-      <div class="dp-deadline-label">Next deadline</div>
-      <div class="dp-deadline-val">${fmtDate(dl.date)}</div>
-      <div class="dp-deadline-freq">${dl.label}</div>
-    </div>
-  </div>`:'';
   const curPri=getPriority(id);
+  const curFreq=store.opFreq[id]||o.freq||'Ad hoc';
+  const curDate=store.opDate[id]||'';
   fields.innerHTML=`
-    ${dlBox}
-    <div class="dp-field"><div class="dp-fl">Frequency</div><div class="dp-fv">${o.freq}</div></div>
+    <div class="dp-field" style="grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px">
+        <div class="dp-fl">Frequency</div>
+        <select id="dp-freq" style="margin-top:4px;width:100%;font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer">
+          ${['Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].map(f=>`<option${f===curFreq?' selected':''}>${f}</option>`).join('')}
+          ${!['Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].includes(curFreq)?`<option selected>${curFreq}</option>`:''}
+        </select>
+      </div>
+      <div style="flex:1;min-width:140px">
+        <div class="dp-fl">Next deadline / date</div>
+        <input type="date" id="dp-date" value="${curDate}" style="margin-top:4px;width:100%;font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer"/>
+      </div>
+    </div>
+    <div id="dp-deadline-box-wrap" style="grid-column:1/-1"></div>
     <div class="dp-field" style="grid-column:1/-1">
       <div class="dp-fl">Owner <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text2);margin-left:4px">(click to toggle)</span></div>
       <div id="dp-owners" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px"></div>
@@ -1280,6 +1288,33 @@ function openDetail(id){
       </div>
     </div>
   `;
+
+  function refreshDeadlineBox(){
+    const freq=document.getElementById('dp-freq').value;
+    const dateOverride=document.getElementById('dp-date').value;
+    const dl=dateOverride
+      ? {date:dateOverride, label:freq}
+      : computeNextDeadline(freq);
+    const wrap=document.getElementById('dp-deadline-box-wrap');
+    wrap.innerHTML=dl?`<div class="dp-deadline-box">
+      <div>
+        <div class="dp-deadline-label">Next deadline</div>
+        <div class="dp-deadline-val">${fmtDate(dl.date)}</div>
+        <div class="dp-deadline-freq">${dl.label}</div>
+      </div>
+    </div>`:'';
+  }
+  refreshDeadlineBox();
+
+  document.getElementById('dp-freq').addEventListener('change',e=>{
+    store.opFreq[id]=e.target.value;
+    save(); refreshDeadlineBox();
+  });
+  document.getElementById('dp-date').addEventListener('change',e=>{
+    if(e.target.value) store.opDate[id]=e.target.value;
+    else delete store.opDate[id];
+    save(); refreshDeadlineBox();
+  });
   document.getElementById('dp-pri-btns').querySelectorAll('.dp-pribtn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const p=btn.dataset.pri;
