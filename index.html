@@ -776,11 +776,12 @@ if(!store.calDate)    store.calDate={};    // {key: 'YYYY-MM-DD'} — date overr
 if(!store.calDesc)    store.calDesc={};    // {key: string} — cal item description overrides
 if(!store.calProf)    store.calProf={};    // {key: string} — cal item proficiency
 if(!store.calNames)   store.calNames={};   // {key: string} — cal item name overrides
+if(!store.hidden)     store.hidden=[];     // [id, ...] — built-in ops hidden by user
 if(!store.priority)   store.priority={};   // {id: 'High'|'Medium'|'Low'} — priority overrides
 if(!store.opStatus)   store.opStatus={};   // {id: ''|'In progress'|'Done'} — op status overrides
 function save(){localStorage.setItem('badi_v2',JSON.stringify(store))}
 
-function allOps(){return [...OPS,...store.custom];}
+function allOps(){return [...OPS,...store.custom].filter(o=>!store.hidden.includes(o.id));}
 function nextCustomId(){return 10000+store.custom.length+Math.floor(Math.random()*100);}
 
 function getProf(id){return store.prof[id]||'—'}
@@ -1282,20 +1283,19 @@ function openDetail(id){
     },600);
   };
 
-  // Delete button for custom ops
+  // Delete button
   const existing=document.getElementById('dp-delete');
   if(existing) existing.remove();
-  if(isCustom(id)){
-    const del=document.createElement('button');
-    del.className='delete-btn'; del.id='dp-delete';
-    del.textContent='Delete this operation';
-    del.onclick=()=>{
-      if(!confirm('Delete "'+getName(id)+'"? This cannot be undone.')) return;
-      store.custom=store.custom.filter(o=>o.id!==id);
-      save(); closeDetail(); renderMap(); renderOps(); updateStats();
-    };
-    document.querySelector('.dp-body').appendChild(del);
-  }
+  const del=document.createElement('button');
+  del.className='delete-btn'; del.id='dp-delete';
+  del.textContent='Delete this operation';
+  del.onclick=()=>{
+    if(!confirm('Delete "'+getName(id)+'"? This cannot be undone.')) return;
+    if(isCustom(id)) store.custom=store.custom.filter(o=>o.id!==id);
+    else store.hidden.push(id);
+    save(); closeDetail(); renderMap(); renderOps(); updateStats();
+  };
+  document.querySelector('.dp-body').appendChild(del);
 
   const profEl=document.getElementById('dp-prof');
   const cur=getProf(id);
