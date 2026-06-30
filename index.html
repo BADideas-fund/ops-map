@@ -293,6 +293,7 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
         <div class="form-row">
           <label>Frequency</label>
           <select id="new-op-freq">
+            <option value="Once">Once</option>
             <option value="Ad hoc">Ad hoc</option>
             <option value="Ongoing">Ongoing</option>
             <option value="Daily">Daily</option>
@@ -1266,8 +1267,8 @@ function openDetail(id){
       <div style="flex:1;min-width:140px">
         <div class="dp-fl">Frequency</div>
         <select id="dp-freq" style="margin-top:4px;width:100%;font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-          ${['Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].map(f=>`<option${f===curFreq?' selected':''}>${f}</option>`).join('')}
-          ${!['Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].includes(curFreq)?`<option selected>${curFreq}</option>`:''}
+          ${['Once','Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].map(f=>`<option${f===curFreq?' selected':''}>${f}</option>`).join('')}
+          ${!['Once','Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].includes(curFreq)?`<option selected>${curFreq}</option>`:''}
         </select>
       </div>
       <div style="flex:1;min-width:140px">
