@@ -1067,167 +1067,175 @@ function renderDash(){
 function renderVmap(){
   const el=document.getElementById('vmap-view');
   const all=allOps();
-  const W=1060,H=640;
-  const cx=W/2,cy=H/2+10;
-
-  // Dependencies — directional arrows between categories
-  const DEPS=[
-    {from:'deals',    to:'portfolio', label:'closed deals'},
-    {from:'deals',    to:'compliance',label:'KYC / AML'},
-    {from:'deals',    to:'syndicate', label:'SPV structures'},
-    {from:'portfolio',to:'lp',        label:'KPI data'},
-    {from:'portfolio',to:'finance',   label:'valuations'},
-    {from:'finance',  to:'lp',        label:'financials'},
-    {from:'compliance',to:'finance',  label:'regulatory'},
-    {from:'syndicate',to:'lp',        label:'investor updates'},
-    {from:'lp',       to:'team',      label:'reporting'},
-  ];
-
-  const catKeys=Object.keys(CATS);
-  const N=catKeys.length;
-  const counts=catKeys.map(k=>all.filter(o=>o.cat===k).length);
-  const maxCount=Math.max(...counts,1);
-  const minR=148,maxR=232;
   const allCal=[...CAL,...store.calCustom];
   const now=TODAY;
   const in30=new Date(TODAY); in30.setDate(in30.getDate()+30);
 
-  // Build node positions
-  const pos={};
-  catKeys.forEach((key,i)=>{
-    const count=all.filter(o=>o.cat===key).length;
-    const angle=(2*Math.PI*i/N)-Math.PI/2;
-    const r=minR+(count/maxCount)*(maxR-minR);
-    pos[key]={x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle),r:13+count*1.3,angle,radDist:r,color:CATS[key].color,count};
+  // Card dimensions & canvas
+  const W=860, H=660, CW=148, CH=108;
+
+  // Operational flow layout — top-to-bottom DAG
+  // deals → [compliance, portfolio, syndicate] → [finance, lp] → team
+  const POS={
+    deals:      {x:430, y:80},
+    compliance: {x:148, y:270},
+    portfolio:  {x:430, y:270},
+    syndicate:  {x:712, y:270},
+    finance:    {x:280, y:460},
+    lp:         {x:580, y:460},
+    team:       {x:430, y:600},
+  };
+
+  const FLOW=[
+    {from:'deals',     to:'portfolio',  label:'closed deals'},
+    {from:'deals',     to:'compliance', label:'KYC / AML'},
+    {from:'deals',     to:'syndicate',  label:'SPV'},
+    {from:'portfolio', to:'finance',    label:'valuations'},
+    {from:'portfolio', to:'lp',         label:'KPI data'},
+    {from:'compliance',to:'finance',    label:'regulatory'},
+    {from:'syndicate', to:'lp',         label:'inv. updates'},
+    {from:'finance',   to:'lp',         label:'financials'},
+    {from:'lp',        to:'team',       label:'reporting'},
+  ];
+
+  const profColors={'Mastered':'#16A34A','In progress':'#2563EB','Started':'#D97706','Not started':'#DC2626','Irrelevant':'#94A3B8','—':'#E2E8F0'};
+  const profOrder=['Mastered','In progress','Started','Not started','Irrelevant','—'];
+
+  // Per-category computed data
+  const catData={};
+  Object.keys(CATS).forEach(key=>{
+    const ops=all.filter(o=>o.cat===key);
+    const high=ops.filter(o=>getPriority(o.id)==='High').length;
+    const med=ops.filter(o=>getPriority(o.id)==='Medium').length;
+    const profMap={}; profOrder.forEach(p=>profMap[p]=0);
+    ops.forEach(o=>{const p=getProf(o.id); profMap[p]=(profMap[p]||0)+1;});
+    const urgent=allCal.some(c=>c.cat===key&&c.date&&new Date(c.date)>=now&&new Date(c.date)<=in30);
+    const nextCal=allCal.filter(c=>c.cat===key&&c.date&&new Date(c.date)>=now).sort((a,b)=>a.date.localeCompare(b.date))[0];
+    catData[key]={ops,high,med,profMap,urgent,nextCal};
   });
 
-  // Proficiency arc helper — returns SVG path for a partial arc
-  function arcPath(cx,cy,r,startFrac,endFrac){
-    if(endFrac-startFrac<0.001) return '';
-    const a0=(startFrac*2*Math.PI)-Math.PI/2;
-    const a1=(endFrac*2*Math.PI)-Math.PI/2;
-    const x1=cx+r*Math.cos(a0),y1=cy+r*Math.sin(a0);
-    const x2=cx+r*Math.cos(a1),y2=cy+r*Math.sin(a1);
-    const large=endFrac-startFrac>0.5?1:0;
-    return `M${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2}`;
+  // Get the card-edge point from key toward targetKey
+  function cardEdge(key,targetKey){
+    const fp=POS[key],tp=POS[targetKey];
+    const dx=tp.x-fp.x, dy=tp.y-fp.y;
+    const hw=CW/2, hh=CH/2;
+    const adx=Math.abs(dx), ady=Math.abs(dy);
+    // Which edge does the ray to target exit through?
+    if(adx*hh > ady*hw){
+      // left or right wall
+      const ex=fp.x+(dx>0?hw:-hw);
+      const ey=fp.y+dy*(hw/adx);
+      return {x:ex,y:ey};
+    } else {
+      // top or bottom wall
+      const ey=fp.y+(dy>0?hh:-hh);
+      const ex=fp.x+dx*(hh/ady);
+      return {x:ex,y:ey};
+    }
   }
 
   let defs=`<defs>
-    <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-      <polygon points="0 0, 7 3.5, 0 7" fill="rgba(100,116,139,0.6)"/>
+    <marker id="varr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 Z" fill="rgba(148,163,184,0.85)"/>
     </marker>
-    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="vglow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="vshadow" x="-8%" y="-8%" width="124%" height="132%">
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(0,0,0,0.10)"/>
+    </filter>
   </defs>`;
 
-  // Dependency arrows — curved bezier, offset perpendicular
+  // Draw arrows behind cards
   let arrows='';
-  DEPS.forEach(({from,to,label})=>{
-    const a=pos[from],b=pos[to];
-    if(!a||!b) return;
-    // Midpoint + perpendicular offset for curve
-    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
-    const dx=b.x-a.x,dy=b.y-a.y;
+  FLOW.forEach(({from,to,label})=>{
+    if(!POS[from]||!POS[to]) return;
+    const a=cardEdge(from,to);
+    const b=cardEdge(to,from);
+    // Gentle cubic bezier
+    const dx=b.x-a.x, dy=b.y-a.y;
     const len=Math.sqrt(dx*dx+dy*dy)||1;
-    const ox=-dy/len*40,oy=dx/len*40; // curve outward
-    // Shorten endpoints to node edge
-    const shrinkA=a.r+4, shrinkB=b.r+10;
-    const ax2=a.x+(dx/len)*shrinkA, ay2=a.y+(dy/len)*shrinkA;
-    const bx2=b.x-(dx/len)*shrinkB, by2=b.y-(dy/len)*shrinkB;
-    arrows+=`<path d="M${ax2},${ay2} Q${mx+ox},${my+oy} ${bx2},${by2}" fill="none" stroke="rgba(100,116,139,0.4)" stroke-width="1.2" marker-end="url(#arr)"/>`;
-    // Dependency label on curve midpoint
-    const lx=mx+ox*0.6,ly=my+oy*0.6;
-    arrows+=`<text x="${lx}" y="${ly}" text-anchor="middle" font-size="8" fill="rgba(100,116,139,0.7)" font-family="Inter,system-ui,sans-serif">${label}</text>`;
+    // Control points: pull toward midpoint with slight perpendicular lean
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+    const nx=-dy/len, ny=dx/len; // perpendicular unit
+    const lean=len*0.08;
+    const c1x=a.x+dx*0.3+nx*lean, c1y=a.y+dy*0.3+ny*lean;
+    const c2x=b.x-dx*0.3+nx*lean, c2y=b.y-dy*0.3+ny*lean;
+    // shorten end by 6px for arrowhead
+    const endX=b.x-dx/len*6, endY=b.y-dy/len*6;
+    arrows+=`<path d="M${a.x.toFixed(1)},${a.y.toFixed(1)} C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}" fill="none" stroke="rgba(148,163,184,0.6)" stroke-width="1.5" marker-end="url(#varr)"/>`;
+    // Label at 55% along path (closer to destination)
+    const lx=a.x*0.1+mx*0.6+b.x*0.3, ly=a.y*0.1+my*0.6+b.y*0.3;
+    const lnx=nx*(len>180?18:12), lny=ny*(len>180?18:12);
+    arrows+=`<text x="${(lx+lnx).toFixed(1)}" y="${(ly+lny).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="8.5" fill="rgba(100,116,139,0.8)" font-family="Inter,system-ui,sans-serif" font-style="italic">${label}</text>`;
   });
 
-  // Spokes, dots, nodes, rings, labels
-  let spokes='',opDots='',rings='',nodes='',labels='';
-
-  catKeys.forEach(key=>{
-    const p=pos[key];
+  // Draw category cards
+  let cards='';
+  Object.keys(CATS).forEach(key=>{
     const cat=CATS[key];
-    const ops=all.filter(o=>o.cat===key);
-    const high=ops.filter(o=>getPriority(o.id)==='High').length;
+    const p=POS[key];
+    if(!p) return;
+    const d=catData[key];
+    const x=p.x-CW/2, y=p.y-CH/2;
+    const total=d.ops.length||1;
 
-    // Proficiency breakdown
-    const profMap={'Mastered':0,'In progress':0,'Started':0,'Not started':0,'—':0};
-    ops.forEach(o=>{const pf=getProf(o.id);profMap[pf]=(profMap[pf]||0)+1;});
-    const total=ops.length||1;
-    const profColors={'Mastered':'#16A34A','In progress':'#2563EB','Started':'#D97706','Not started':'#DC2626','—':'#CBD5E1'};
-    const profOrder=['Mastered','In progress','Started','Not started','—'];
-    let cumFrac=0;
-    const ringR=p.r+7;
+    // Urgency border
+    const urgentBorder=d.urgent?`<rect x="${(x-3).toFixed(1)}" y="${(y-3).toFixed(1)}" width="${CW+6}" height="${CH+6}" rx="11" fill="none" stroke="#F97316" stroke-width="2" stroke-dasharray="5 3" opacity="0.8"/>`:'';
+
+    // Proficiency bar (bottom strip, 5px tall)
+    const barY=y+CH-14; const barX=x+10; const barW=CW-20;
+    let bx=barX, profBar='';
     profOrder.forEach(pf=>{
-      const frac=profMap[pf]/total;
-      if(frac>0.005){
-        rings+=`<path d="${arcPath(p.x,p.y,ringR,cumFrac,cumFrac+frac)}" fill="none" stroke="${profColors[pf]}" stroke-width="4" stroke-linecap="round"/>`;
-        cumFrac+=frac;
+      const w=(d.profMap[pf]||0)/total*barW;
+      if(w>0.5){
+        profBar+=`<rect x="${bx.toFixed(1)}" y="${barY}" width="${w.toFixed(1)}" height="5" rx="2" fill="${profColors[pf]}"/>`;
+        bx+=w;
       }
     });
 
-    // Urgency glow — deadline in next 30 days?
-    const hasUrgent=allCal.some(c=>c.cat===key&&c.date&&new Date(c.date)>=now&&new Date(c.date)<=in30);
-    if(hasUrgent){
-      nodes+=`<circle cx="${p.x}" cy="${p.y}" r="${p.r+14}" fill="${cat.color}" opacity="0.12" filter="url(#glow)"/>`;
+    // Next deadline
+    let dlText='';
+    if(d.nextCal){
+      const dlDate=new Date(d.nextCal.date+'T12:00:00');
+      const dlStr=dlDate.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      dlText=`<text x="${(x+CW-9).toFixed(1)}" y="${(y+CH-19).toFixed(1)}" text-anchor="end" font-size="8" fill="${d.urgent?'#F97316':'rgba(100,116,139,0.75)'}" font-family="Inter,system-ui,sans-serif">⏱ ${dlStr}</text>`;
     }
 
-    // Spoke
-    spokes+=`<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="${cat.color}" stroke-width="1.2" stroke-opacity="0.3" stroke-dasharray="3 5"/>`;
+    // High-priority badge (top-right)
+    const badge=d.high>0?`<rect x="${(x+CW-30).toFixed(1)}" y="${(y+8).toFixed(1)}" width="22" height="15" rx="4" fill="#FEE2E2"/><text x="${(x+CW-19).toFixed(1)}" y="${(y+19).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#BE2424" font-family="Inter,system-ui,sans-serif">${d.high}H</text>`:'';
 
-    // Op dots along spoke (priority → size & opacity)
-    ops.slice(0,14).forEach((o,j)=>{
-      const t=0.26+(j/(Math.max(ops.length,1)+1))*0.58;
-      const dx2=cx+p.radDist*t*Math.cos(p.angle);
-      const dy2=cy+p.radDist*t*Math.sin(p.angle);
-      const pri=getPriority(o.id);
-      const r2=pri==='High'?5.5:pri==='Low'?2.5:3.5;
-      const op2=pri==='High'?0.9:pri==='Low'?0.35:0.6;
-      opDots+=`<circle cx="${dx2}" cy="${dy2}" r="${r2}" fill="${cat.color}" opacity="${op2}"/>`;
-    });
-
-    // Node
-    nodes+=`<g class="vmap-cell" data-cat="${key}" style="cursor:pointer">
-      <circle cx="${p.x}" cy="${p.y}" r="${p.r}" fill="${cat.color}" opacity="0.13"/>
-      <circle cx="${p.x}" cy="${p.y}" r="${p.r}" fill="none" stroke="${cat.color}" stroke-width="2"/>
-      <text x="${p.x}" y="${p.y+1}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="800" fill="${cat.color}" font-family="Inter,system-ui,sans-serif">${p.count}</text>
-      ${high>0?`<circle cx="${p.x+p.r*0.72}" cy="${p.y-p.r*0.72}" r="7.5" fill="#BE2424"/>
-      <text x="${p.x+p.r*0.72}" y="${p.y-p.r*0.72+1}" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="800" fill="white" font-family="Inter,system-ui,sans-serif">${high}</text>`:''}
+    // Op count and category label
+    cards+=`
+    ${urgentBorder}
+    <g class="vmap-cell" data-cat="${key}" style="cursor:pointer">
+      <rect x="${x}" y="${y}" width="${CW}" height="${CH}" rx="9" fill="var(--surface)" stroke="${cat.color}" stroke-width="1.5" filter="url(#vshadow)"/>
+      <rect x="${x}" y="${y}" width="5" height="${CH}" rx="2" fill="${cat.color}"/>
+      <rect x="${(x+5).toFixed(1)}" y="${y}" width="5" height="${CH}" fill="${cat.color}" opacity="0.18"/>
+      <text x="${(x+17).toFixed(1)}" y="${(y+18).toFixed(1)}" font-size="7.5" font-weight="700" fill="${cat.color}" font-family="Inter,system-ui,sans-serif" letter-spacing="0.07em">${cat.short.toUpperCase()}</text>
+      <text x="${(x+17).toFixed(1)}" y="${(y+52).toFixed(1)}" font-size="30" font-weight="800" fill="${cat.color}" font-family="Inter,system-ui,sans-serif">${d.ops.length}</text>
+      <text x="${(x+17).toFixed(1)}" y="${(y+66).toFixed(1)}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">ops  ·  ${d.high} high  ·  ${d.med} med</text>
+      ${badge}${dlText}${profBar}
     </g>`;
-
-    // Label
-    const lrOff=p.r+16;
-    const lx=cx+(p.radDist+lrOff)*Math.cos(p.angle);
-    const ly=cy+(p.radDist+lrOff)*Math.sin(p.angle);
-    const anchor=Math.cos(p.angle)>0.15?'start':Math.cos(p.angle)<-0.15?'end':'middle';
-    const words=cat.label.split(' & ');
-    labels+=`<g class="vmap-cell" data-cat="${key}" style="cursor:pointer">`;
-    words.forEach((w,wi)=>{
-      labels+=`<text x="${lx}" y="${ly+(wi-(words.length-1)/2)*13}" text-anchor="${anchor}" font-size="10.5" font-weight="600" fill="var(--text)" font-family="Inter,system-ui,sans-serif">${w}</text>`;
-    });
-    labels+=`</g>`;
   });
 
-  // Hub
-  const hub=`
-    <circle cx="${cx}" cy="${cy}" r="36" fill="var(--deep)"/>
-    <text x="${cx}" y="${cy-5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif" letter-spacing="0.06em">BAD IDEAS</text>
-    <text x="${cx}" y="${cy+8}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.55)" font-family="Inter,system-ui,sans-serif">${all.length} ops</text>`;
-
-  // Legend
-  const legend=`
-    <rect x="14" y="${H-78}" width="220" height="68" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
-    <text x="24" y="${H-62}" font-size="8.5" font-weight="700" fill="var(--text2)" font-family="Inter,system-ui,sans-serif" letter-spacing="0.06em">LEGEND</text>
-    <circle cx="26" cy="${H-47}" r="4" fill="none" stroke="#16A34A" stroke-width="3"/>
-    <text x="36" y="${H-44}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">Proficiency ring (green=mastered → red=not started)</text>
-    <circle cx="26" cy="${H-32}" r="5" fill="#BE2424"/>
-    <text x="36" y="${H-29}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">High priority ops badge</text>
-    <circle cx="26" cy="${H-17}" r="6" fill="#2563EB" opacity="0.15" filter="url(#glow)"/>
-    <text x="36" y="${H-14}" font-size="8.5" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">Glow = deadline within 30 days</text>`;
+  // Proficiency legend at bottom
+  const ly2=H-14;
+  let legend=`<text x="10" y="${ly2}" font-size="8" font-weight="600" fill="var(--text2)" font-family="Inter,system-ui,sans-serif" letter-spacing="0.05em">PROFICIENCY:</text>`;
+  let lx2=100;
+  [['Mastered','#16A34A'],['In progress','#2563EB'],['Started','#D97706'],['Not started','#DC2626'],['Irrelevant','#94A3B8'],['Not set','#E2E8F0']].forEach(([lbl,col])=>{
+    legend+=`<rect x="${lx2}" y="${ly2-8}" width="8" height="8" rx="1.5" fill="${col}" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>`;
+    legend+=`<text x="${lx2+11}" y="${ly2}" font-size="8" fill="var(--text2)" font-family="Inter,system-ui,sans-serif">${lbl}</text>`;
+    lx2+=lbl.length*4.8+22;
+  });
+  legend+=`<text x="${W-10}" y="${ly2}" text-anchor="end" font-size="8" fill="#F97316" font-family="Inter,system-ui,sans-serif">◌ dashed border = deadline within 30 days</text>`;
 
   el.innerHTML=`
-    <div style="margin-bottom:12px;font-size:12px;color:var(--text2)">Click any node to explore that category. Arrows show work dependencies between areas.</div>
+    <div style="font-size:11.5px;color:var(--text2);margin-bottom:10px">Operational flow — work moves top to bottom. Click any card to explore that category.</div>
     <div id="vmap-canvas-wrap">
-      <svg id="vmap-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        ${defs}${spokes}${arrows}${opDots}${rings}${nodes}${labels}${hub}${legend}
+      <svg id="vmap-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+        ${defs}${arrows}${cards}${legend}
       </svg>
     </div>`;
 
@@ -1741,8 +1749,8 @@ function exportICS(){
 // PILLS
 function renderPills(){
   const el=document.getElementById('cpills');
-  const cnt={all:OPS.length};
-  Object.keys(CATS).forEach(k=>{cnt[k]=OPS.filter(o=>o.cat===k).length;});
+  const cnt={all:allOps().length};
+  Object.keys(CATS).forEach(k=>{cnt[k]=allOps().filter(o=>o.cat===k).length;});
   const items=[['all','All','#141C2E'],...Object.entries(CATS).map(([k,v])=>[k,v.short,v.color])];
   el.innerHTML=items.map(([key,label,color])=>{
     const a=activeCat===key;
