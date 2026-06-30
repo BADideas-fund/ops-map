@@ -1645,19 +1645,28 @@ function openDetail(id){
 
   const fields=document.getElementById('dp-fields');
   const curPri=getPriority(id);
-  const curFreq=store.opFreq[id]||o.freq||'Ad hoc';
+  const rawFreq=store.opFreq[id]||o.freq||'Ad hoc';
+  // Parse "Monthly (by 10th)" → base="Monthly", day=10
+  const freqDayMatch=rawFreq.match(/^(Monthly|Quarterly|Biannually|Annually)\s*\(by (\d+)/);
+  const curFreqBase=freqDayMatch?freqDayMatch[1]:rawFreq;
+  const curFreqDay=freqDayMatch?freqDayMatch[2]:'';
   const curDate=store.opDate[id]||'';
+  const dayFreqs=['Monthly','Quarterly','Biannually','Annually'];
+  const showDayInput=dayFreqs.includes(curFreqBase);
   fields.innerHTML=`
-    <div class="dp-field" style="grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap">
+    <div class="dp-field" style="grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
       <div style="flex:1;min-width:140px">
         <div class="dp-fl">Frequency</div>
         <select id="dp-freq" style="margin-top:4px;width:100%;font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer">
-          ${['Once','Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].map(f=>`<option${f===curFreq?' selected':''}>${f}</option>`).join('')}
-          ${!['Once','Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].includes(curFreq)?`<option selected>${curFreq}</option>`:''}
+          ${['Once','Ad hoc','Ongoing','Daily','Weekly','Monthly','Quarterly','Biannually','Annually','On event'].map(f=>`<option${f===curFreqBase?' selected':''}>${f}</option>`).join('')}
         </select>
       </div>
+      <div id="dp-day-wrap" style="min-width:90px;flex-shrink:0;${showDayInput?'':'display:none'}">
+        <div class="dp-fl">Day of month</div>
+        <input type="number" id="dp-day" min="1" max="31" value="${curFreqDay}" placeholder="e.g. 5" style="margin-top:4px;width:100%;font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none"/>
+      </div>
       <div style="flex:1;min-width:140px">
-        <div class="dp-fl">Next deadline / date</div>
+        <div class="dp-fl">Start / override date</div>
         <input type="date" id="dp-date" value="${curDate}" style="margin-top:4px;width:100%;font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);background:var(--surface);color:var(--text);outline:none;cursor:pointer"/>
       </div>
     </div>
@@ -1692,26 +1701,50 @@ function openDetail(id){
   }
   refreshDeadlineBox();
 
+  function getFreqLabel(){
+    const base=document.getElementById('dp-freq').value;
+    const dayEl=document.getElementById('dp-day');
+    const day=dayEl&&!dayEl.closest('#dp-day-wrap').hidden&&dayEl.value?parseInt(dayEl.value):null;
+    if(day&&['Monthly','Quarterly','Biannually','Annually'].includes(base)){
+      const sfx=day===1?'st':day===2?'nd':day===3?'rd':'th';
+      return `${base} (by ${day}${sfx})`;
+    }
+    return base;
+  }
+
   function regenerateCalForOp(){
-    const freq=document.getElementById('dp-freq').value;
+    const freqLabel=getFreqLabel();
+    const base=document.getElementById('dp-freq').value;
+    const dayEl=document.getElementById('dp-day');
+    const day=dayEl&&!dayEl.closest('#dp-day-wrap').hidden&&dayEl.value?parseInt(dayEl.value):null;
     const dateStr=document.getElementById('dp-date').value;
     const opName=getName(id);
-    // Remove existing calCustom entries that belong to this op
     store.calCustom=store.calCustom.filter(c=>!c.name.toLowerCase().startsWith(opName.toLowerCase()));
-    if(dateStr&&freq&&FREQ_RRULE[freq]){
-      const rrule=FREQ_RRULE[freq];
+    if(dateStr&&FREQ_RRULE[base]){
+      let rrule=FREQ_RRULE[base];
+      if(day) rrule+=`;BYMONTHDAY=${day}`;
       const cat=allOps().find(op=>op.id===id)?.cat||'team';
       generateDates(dateStr,rrule).forEach(d=>{
-        store.calCustom.push({name:opName,date:d,audience:'Internal',cat,notes:freq,status:''});
+        store.calCustom.push({name:opName,date:d,audience:'Internal',cat,notes:freqLabel,status:''});
       });
     } else if(dateStr){
       const cat=allOps().find(op=>op.id===id)?.cat||'team';
-      store.calCustom.push({name:opName,date:dateStr,audience:'Internal',cat,notes:freq,status:''});
+      store.calCustom.push({name:opName,date:dateStr,audience:'Internal',cat,notes:freqLabel,status:''});
     }
   }
 
   document.getElementById('dp-freq').addEventListener('change',e=>{
-    store.opFreq[id]=e.target.value;
+    const showDay=['Monthly','Quarterly','Biannually','Annually'].includes(e.target.value);
+    const wrap=document.getElementById('dp-day-wrap');
+    wrap.style.display=showDay?'':'none';
+    const freqLabel=getFreqLabel();
+    store.opFreq[id]=freqLabel;
+    regenerateCalForOp();
+    save(); refreshDeadlineBox();
+  });
+  document.getElementById('dp-day').addEventListener('change',()=>{
+    const freqLabel=getFreqLabel();
+    store.opFreq[id]=freqLabel;
     regenerateCalForOp();
     save(); refreshDeadlineBox();
   });
