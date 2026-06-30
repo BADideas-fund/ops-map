@@ -613,6 +613,15 @@ async function pullFromCloud(){
       if(!store.calCustom) store.calCustom=[];
       if(!store.calStatus) store.calStatus={};
       if(!store.calDate)   store.calDate={};
+      if(!store.calDesc)   store.calDesc={};
+      if(!store.calProf)   store.calProf={};
+      if(!store.calNames)  store.calNames={};
+      if(!store.calCat)    store.calCat={};
+      if(!store.hidden)    store.hidden=[];
+      if(!store.owners)    store.owners={};
+      if(!store.opFreq)    store.opFreq={};
+      if(!store.opDate)    store.opDate={};
+      if(!store.opStatus)  store.opStatus={};
       if(!store.priority)  store.priority={};
       save();
       renderDash(); renderOps(); renderCal(); updateStats();
@@ -1040,69 +1049,87 @@ function renderDash(){
   });
 }
 
-// VISUAL MAP (TREEMAP)
+// VISUAL MAP (HUB-AND-SPOKE NETWORK)
 function renderVmap(){
   const el=document.getElementById('vmap-view');
   const all=allOps();
-  const W=1000,H=560,PAD=3;
-  const items=Object.entries(CATS).map(([key,cat])=>({
-    key,cat,
-    value:Math.max(all.filter(o=>o.cat===key).length,1),
-    count:all.filter(o=>o.cat===key).length,
-    high:all.filter(o=>o.cat===key&&getPriority(o.id)==='High').length,
-  }));
-  items.sort((a,b)=>b.value-a.value);
-  const rects=[];
-  function layout(its,x,y,w,h){
-    if(!its.length)return;
-    if(its.length===1){rects.push({...its[0],x,y,w,h});return;}
-    const total=its.reduce((s,i)=>s+i.value,0);
-    let sum=0,split=0;
-    for(let i=0;i<its.length;i++){sum+=its[i].value;if(sum>=total/2){split=i+1;break;}}
-    if(!split||split===its.length)split=Math.floor(its.length/2)||1;
-    const a=its.slice(0,split),b=its.slice(split);
-    const ratio=a.reduce((s,i)=>s+i.value,0)/total;
-    if(w>=h){layout(a,x,y,w*ratio,h);layout(b,x+w*ratio,y,w*(1-ratio),h);}
-    else{layout(a,x,y,w,h*ratio);layout(b,x,y+h*ratio,w,h*(1-ratio));}
-  }
-  layout(items,0,0,W,H);
-  const cells=rects.map(r=>{
-    const rx=r.x+PAD,ry=r.y+PAD,rw=r.w-PAD*2,rh=r.h-PAD*2;
-    if(rw<4||rh<4)return'';
-    const fs=Math.min(15,Math.max(9,Math.sqrt(rw*rh)/9));
-    const showSub=rh>60&&rw>80;
-    const showHigh=r.high>0&&rh>80&&rw>60;
-    const ops=all.filter(o=>o.cat===r.key);
-    const dotCols=Math.max(1,Math.floor((rw-16)/13));
-    const dotRows=Math.max(0,Math.floor((rh-fs*2-30)/13));
-    const maxDots=dotCols*dotRows;
-    const dots=rh>100&&rw>80?ops.slice(0,Math.min(maxDots,ops.length)):[];
-    return `<g class="vmap-cell" data-cat="${r.key}" transform="translate(${rx},${ry})">
-      <rect x="0" y="0" width="${rw}" height="${rh}" fill="${r.cat.color}" rx="6"/>
-      <rect x="0" y="0" width="${rw}" height="${rh}" fill="rgba(0,0,0,0.15)" rx="6"/>
-      ${dots.map((_,i)=>{
-        const cx=10+(i%dotCols)*13;
-        const cy=rh-12-Math.floor(i/dotCols)*13;
-        return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="rgba(255,255,255,0.28)"/>`;
-      }).join('')}
-      <text x="12" y="${12+fs}" font-size="${fs}px" font-weight="700" fill="rgba(255,255,255,0.95)" font-family="Inter,system-ui,sans-serif">${r.cat.label}</text>
-      ${showSub?`<text x="12" y="${16+fs*2}" font-size="${Math.max(8,fs-2)}px" fill="rgba(255,255,255,0.6)" font-family="Inter,system-ui,sans-serif">${r.count} operation${r.count!==1?'s':''}</text>`:''}
-      ${showHigh?`<rect x="${rw-52}" y="${rh-26}" width="46" height="18" rx="3" fill="rgba(255,255,255,0.18)"/>
-      <text x="${rw-29}" y="${rh-13}" font-size="9.5px" font-weight="700" fill="rgba(255,255,255,0.9)" text-anchor="middle" font-family="Inter,system-ui,sans-serif">${r.high} HIGH</text>`:''}
-      <text x="${rw-10}" y="${rh-10}" font-size="${Math.min(40,rh*0.35)}px" font-weight="800" fill="rgba(255,255,255,0.12)" text-anchor="end" font-family="Inter,system-ui,sans-serif">${r.count}</text>
+  const W=1000,H=600;
+  const cx=W/2, cy=H/2;
+  const catKeys=Object.keys(CATS);
+  const N=catKeys.length;
+  // Spoke lengths scaled by op count
+  const counts=catKeys.map(k=>all.filter(o=>o.cat===k).length);
+  const maxCount=Math.max(...counts,1);
+  const minR=140, maxR=240;
+
+  let spokes='', nodes='', opDots='', labels='';
+
+  catKeys.forEach((key,i)=>{
+    const cat=CATS[key];
+    const ops=all.filter(o=>o.cat===key);
+    const count=ops.length;
+    const high=ops.filter(o=>getPriority(o.id)==='High').length;
+    const angle=(2*Math.PI*i/N)-Math.PI/2;
+    const r=minR+(count/maxCount)*(maxR-minR);
+    const nx=cx+r*Math.cos(angle);
+    const ny=cy+r*Math.sin(angle);
+    const nodeR=14+count*1.4;
+
+    // Spoke line
+    spokes+=`<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${cat.color}" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="4 4"/>`;
+
+    // Op dots along the spoke
+    ops.slice(0,Math.min(count,12)).forEach((_,j)=>{
+      const t=0.28+(j/(Math.max(count,1)+2))*0.55;
+      const dx=cx+r*t*Math.cos(angle);
+      const dy=cy+r*t*Math.sin(angle);
+      const isHigh=getPriority(_.id)==='High';
+      opDots+=`<circle cx="${dx}" cy="${dy}" r="${isHigh?5:3.5}" fill="${cat.color}" opacity="${isHigh?0.9:0.45}"/>`;
+    });
+
+    // Category node circle
+    nodes+=`<g class="vmap-cell" data-cat="${key}" style="cursor:pointer">
+      <circle cx="${nx}" cy="${ny}" r="${nodeR}" fill="${cat.color}" opacity="0.15"/>
+      <circle cx="${nx}" cy="${ny}" r="${nodeR}" fill="none" stroke="${cat.color}" stroke-width="2"/>
+      <text x="${nx}" y="${ny+1}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="${cat.color}" font-family="Inter,system-ui,sans-serif">${count}</text>
+      ${high>0?`<circle cx="${nx+nodeR*0.7}" cy="${ny-nodeR*0.7}" r="8" fill="#BE2424"/>
+      <text x="${nx+nodeR*0.7}" y="${ny-nodeR*0.7+1}" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="800" fill="white" font-family="Inter,system-ui,sans-serif">${high}</text>`:''}
     </g>`;
-  }).join('');
+
+    // Label outside the node
+    const labelR=r+nodeR+14;
+    const lx=cx+labelR*Math.cos(angle);
+    const ly=cy+labelR*Math.sin(angle);
+    const anchor=Math.cos(angle)>0.1?'start':Math.cos(angle)<-0.1?'end':'middle';
+    const lines=cat.label.split(' & ');
+    labels+=`<g class="vmap-cell" data-cat="${key}" style="cursor:pointer">`;
+    lines.forEach((line,li)=>{
+      labels+=`<text x="${lx}" y="${ly+(li-(lines.length-1)/2)*14}" text-anchor="${anchor}" font-size="11" font-weight="600" fill="var(--text)" font-family="Inter,system-ui,sans-serif" opacity="0.8">${line}</text>`;
+    });
+    labels+=`</g>`;
+  });
+
+  // Center hub
+  const hub=`
+    <circle cx="${cx}" cy="${cy}" r="38" fill="var(--deep)"/>
+    <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="10" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif" letter-spacing="0.05em">BAD</text>
+    <text x="${cx}" y="${cy+7}" text-anchor="middle" font-size="10" font-weight="700" fill="white" font-family="Inter,system-ui,sans-serif" letter-spacing="0.05em">IDEAS</text>
+    <text x="${cx}" y="${cy+19}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.6)" font-family="Inter,system-ui,sans-serif">${all.length} ops</text>`;
+
   el.innerHTML=`
-    <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div style="font-size:12.5px;color:var(--text2)">Cell size = number of operations. Click any area to explore.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-left:auto">
-        ${Object.entries(CATS).map(([k,c])=>`<span class="vmap-legend" data-cat="${k}" style="display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text2);cursor:pointer"><span style="width:8px;height:8px;border-radius:2px;background:${c.color};display:inline-block;flex-shrink:0"></span>${c.short}</span>`).join('')}
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="font-size:12.5px;color:var(--text2)">Node size = distance from centre. Dots on spokes = individual operations. Red badge = high priority count.</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;font-size:11.5px;color:var(--text2)">
+        <span style="display:flex;align-items:center;gap:4px"><circle style="width:8px;height:8px;border-radius:50%;background:#BE2424;display:inline-block"></circle> High priority</span>
       </div>
     </div>
     <div id="vmap-canvas-wrap">
-      <svg id="vmap-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${cells}</svg>
+      <svg id="vmap-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        ${spokes}${opDots}${nodes}${labels}${hub}
+      </svg>
     </div>`;
-  el.querySelectorAll('.vmap-cell,.vmap-legend').forEach(n=>{
+
+  el.querySelectorAll('.vmap-cell').forEach(n=>{
     n.addEventListener('click',()=>{switchView('ops');setActiveCat(n.dataset.cat);});
   });
 }
@@ -1144,7 +1171,7 @@ function filtered(){
   return allOps().filter(o=>{
     const catOk=activeCat==='all'||o.cat===activeCat;
     const sq=q.toLowerCase();
-    const srOk=!sq||getName(o.id).toLowerCase().includes(sq)||o.freq.toLowerCase().includes(sq)||o.owner.toLowerCase().includes(sq)||CATS[o.cat].label.toLowerCase().includes(sq)||(o.desc||'').toLowerCase().includes(sq);
+    const srOk=!sq||getName(o.id).toLowerCase().includes(sq)||(store.opFreq[o.id]||o.freq).toLowerCase().includes(sq)||o.owner.toLowerCase().includes(sq)||CATS[o.cat].label.toLowerCase().includes(sq)||(o.desc||'').toLowerCase().includes(sq);
     return catOk&&srOk;
   });
 }
@@ -1184,7 +1211,7 @@ function renderOps(){
         ${getDesc(o.id)?`<div class="oc-desc">${getDesc(o.id)}</div>`:''}
         <div class="oc-meta">
           <span class="occat" style="color:${cat.color}">${cat.short}</span>
-          ${o.freq!=='—'?`<span class="ocfreq">${o.freq}</span>`:''}
+          ${(store.opFreq[o.id]||o.freq)!=='—'?`<span class="ocfreq">${store.opFreq[o.id]||o.freq}</span>`:''}
           <span class="ocown">${getOwners(o.id).join(', ')||o.owner}</span>
         </div>
       </div>
@@ -1647,8 +1674,9 @@ function openDetail(id){
   openOpId=id;
   openCalKey=null;
   document.getElementById('dp-cal-btn').style.display='';
-  const o=OPS.find(x=>x.id===id);
-  const cat=CATS[o.cat];
+  const o=allOps().find(x=>x.id===id);
+  if(!o) return;
+  const cat=CATS[o.cat]||CATS['team'];
   const badge=document.getElementById('dp-badge');
   badge.textContent=cat.label;
   badge.style.background=cat.color+'18';
@@ -1957,7 +1985,7 @@ function openOpCalModal(id){
   const o=allOps().find(x=>x.id===id);
   if(!o) return;
   opCalCurrentOp=o;
-  opCalDeadline=computeNextDeadline(o.freq);
+  opCalDeadline=computeNextDeadline(store.opFreq[id]||o.freq);
 
   document.getElementById('op-cal-name').value=getName(id);
   document.getElementById('op-cal-modal-title').textContent='Add "'+getName(id)+'" to Calendar';
