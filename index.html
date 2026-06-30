@@ -1080,18 +1080,18 @@ function renderVmap(){
   const in30=new Date(TODAY); in30.setDate(in30.getDate()+30);
 
   // Card dimensions & canvas
-  const W=860, H=660, CW=148, CH=108;
+  const W=880, H=760, CW=148, CH=108;
 
   // Operational flow layout — top-to-bottom DAG
   // deals → [compliance, portfolio, syndicate] → [finance, lp] → team
   const POS={
-    deals:      {x:430, y:80},
-    compliance: {x:148, y:270},
-    portfolio:  {x:430, y:270},
-    syndicate:  {x:712, y:270},
-    finance:    {x:280, y:460},
-    lp:         {x:580, y:460},
-    team:       {x:430, y:600},
+    deals:      {x:440, y:85},
+    compliance: {x:148, y:285},
+    portfolio:  {x:440, y:285},
+    syndicate:  {x:732, y:285},
+    finance:    {x:285, y:490},
+    lp:         {x:595, y:490},
+    team:       {x:440, y:655},
   };
 
   const FLOW=[
