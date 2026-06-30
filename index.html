@@ -105,6 +105,28 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 .cal-title{font-family:'Inter',-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text2)}
 .ics-btn{font-size:11.5px;font-weight:600;padding:5px 13px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-family:inherit;transition:all .12s}
 .ics-btn:hover{background:var(--bg)}
+.cal-view-toggle{display:flex;border:1px solid var(--border);overflow:hidden}
+.cal-view-btn{font-size:11px;font-weight:600;padding:5px 12px;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit;letter-spacing:.03em;transition:all .12s}
+.cal-view-btn.active{background:var(--deep);color:#fff}
+/* MONTH GRID */
+.mcal-wrap{margin-bottom:32px}
+.mcal-nav{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.mcal-nav-btn{font-size:16px;background:none;border:1px solid var(--border);width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);transition:background .1s}
+.mcal-nav-btn:hover{background:var(--bg)}
+.mcal-nav-label{font-size:16px;font-weight:700;letter-spacing:-.02em;flex:1}
+.mcal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
+.mcal-dow{background:var(--bg);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);text-align:center;padding:7px 0}
+.mcal-day{background:var(--surface);min-height:80px;padding:6px 8px;display:flex;flex-direction:column;gap:3px;position:relative}
+.mcal-day.other-month{background:#F7F7F7}
+.mcal-day.today .mcal-dn{background:var(--deep);color:#fff;border-radius:50%}
+.mcal-dn{font-size:12px;font-weight:600;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mcal-dots{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+.mcal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:transform .1s}
+.mcal-dot:hover{transform:scale(1.4)}
+.mcal-event{font-size:10px;line-height:1.3;padding:2px 5px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:500;transition:opacity .1s}
+.mcal-event:hover{opacity:.75}
+.mcal-more{font-size:10px;color:var(--text2);padding:1px 4px;cursor:pointer}
+.mcal-more:hover{color:var(--text)}
 .cal-month{margin-bottom:28px}
 .cal-mhd{font-family:'Inter',-apple-system,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:2px}
 .cal-row{display:flex;align-items:flex-start;gap:12px;padding:9px 8px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
@@ -169,7 +191,7 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 #lockscreen{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
 .lock-box{display:flex;flex-direction:column;align-items:center;gap:24px;width:320px}
 .lock-logo{font-family:'Inter',-apple-system,sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em}
-.lock-sub{font-size:12px;color:#5A5A5A;letter-spacing:.03em;text-transform:uppercase;font-family:'Inter',-apple-system,sans-serif;margin-top:-16px}
+.lock-sub{font-size:12px;color:#5A5A5A;letter-spacing:.03em;text-transform:uppercase;font-family:'Inter',-apple-system,sans-serif}
 .lock-input{width:100%;padding:13px 16px;font-size:15px;font-family:'Inter',-apple-system,sans-serif;background:#111;border:1px solid #333;color:#fff;outline:none;letter-spacing:.02em;transition:border-color .15s}
 .lock-input:focus{border-color:var(--accent)}
 .lock-btn{width:100%;padding:13px;font-size:14px;font-weight:700;font-family:'Inter',-apple-system,sans-serif;background:var(--accent);color:#000;border:none;cursor:pointer;letter-spacing:.04em;transition:filter .12s}
@@ -467,7 +489,10 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 
 <div id="map-view"></div>
 <div id="ops-view" class="hidden"></div>
-<div id="cal-view" class="hidden"></div>
+<div id="cal-view" class="hidden">
+  <div id="cal-month-view" style="display:none"></div>
+  <div id="cal-list-view"></div>
+</div>
 
 <script>
 // PASSWORD LOCK
@@ -949,24 +974,138 @@ function renderOps(){
 }
 
 // CALENDAR VIEW
+let calViewMode='list'; // 'list' | 'month'
+let calMonthOffset=0;   // months from today's month
+
 function daysUntil(dateStr){
   const d=new Date(dateStr);
   return Math.round((d-TODAY)/(1000*60*60*24));
 }
 
-function renderCal(){
-  const wrap=document.getElementById('cal-view');
-  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // Build all items with stable keys and apply date/status overrides
-  const allCal=[
+function buildAllCal(){
+  return [
     ...CAL.map((item,i)=>({...item,_key:'cal-'+i,_origDate:item.date})),
     ...store.calCustom.map((item,i)=>({...item,_key:'cust-'+i,_origDate:item.date}))
   ].map(item=>({
     ...item,
     date: store.calDate[item._key]||item.date,
-    _status: store.calStatus.hasOwnProperty(item._key) ? store.calStatus[item._key] : (item.status||'')
+    _status: store.calStatus.hasOwnProperty(item._key)?store.calStatus[item._key]:(item.status||'')
   }));
+}
+
+function renderCal(){
+  // Route to correct sub-view
+  document.getElementById('cal-month-view').style.display = calViewMode==='month'?'block':'none';
+  document.getElementById('cal-list-view').style.display  = calViewMode==='list' ?'block':'none';
+  if(calViewMode==='month') renderCalMonth();
+  else renderCalList();
+}
+
+function renderCalMonth(){
+  const wrap=document.getElementById('cal-month-view');
+  const allCal=buildAllCal();
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  // Current displayed month
+  const base=new Date(TODAY.getFullYear(), TODAY.getMonth()+calMonthOffset, 1);
+  const yr=base.getFullYear(), mo=base.getMonth();
+
+  // Build a map: 'YYYY-MM-DD' -> [items]
+  const dayMap={};
+  allCal.forEach(item=>{
+    if(!item.date) return;
+    const key=item.date.slice(0,10);
+    if(!dayMap[key]) dayMap[key]=[];
+    dayMap[key].push(item);
+  });
+
+  // Grid: first Monday at or before 1st of month
+  const firstDay=new Date(yr, mo, 1);
+  const lastDay=new Date(yr, mo+1, 0);
+  // Start from Monday
+  let startDow=firstDay.getDay(); // 0=Sun
+  startDow=startDow===0?6:startDow-1; // convert to Mon=0
+  const gridStart=new Date(firstDay); gridStart.setDate(1-startDow);
+
+  let html=`
+  <div class="cal-toolbar">
+    <div class="cal-title">Compliance & Regulatory Calendar</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="cal-view-toggle">
+        <button class="cal-view-btn" id="cal-toggle-list-m">≡ List</button>
+        <button class="cal-view-btn active" id="cal-toggle-month-m">⊞ Month</button>
+      </div>
+      <button class="add-btn primary" id="btn-new-cal-m">+ New Event</button>
+    </div>
+  </div>
+  <div class="mcal-wrap">
+    <div class="mcal-nav">
+      <button class="mcal-nav-btn" id="mcal-prev">‹</button>
+      <div class="mcal-nav-label">${monthNames[mo]} ${yr}</div>
+      <button class="mcal-nav-btn" id="mcal-next">›</button>
+    </div>
+    <div class="mcal-grid">
+      ${dayNames.map(d=>`<div class="mcal-dow">${d}</div>`).join('')}`;
+
+  const todayStr=toIsoDate(TODAY);
+  let cur=new Date(gridStart);
+  // 6 rows × 7 cols = 42 cells
+  for(let i=0;i<42;i++){
+    const ds=toIsoDate(cur);
+    const isThisMonth=cur.getMonth()===mo;
+    const isToday=ds===todayStr;
+    const items=dayMap[ds]||[];
+    const showItems=items.slice(0,3);
+    const extra=items.length-showItems.length;
+
+    html+=`<div class="mcal-day${isThisMonth?'':' other-month'}${isToday?' today':''}">
+      <div class="mcal-dn">${cur.getDate()}</div>`;
+
+    if(items.length>0){
+      // Show colored dots for quick overview
+      html+=`<div class="mcal-dots">`;
+      items.slice(0,7).forEach(item=>{
+        const cat=CATS[item.cat]||{color:'#888'};
+        html+=`<div class="mcal-dot" style="background:${cat.color}" data-key="${item._key}" title="${item.name}"></div>`;
+      });
+      html+=`</div>`;
+      // Show event labels (up to 2)
+      showItems.slice(0,2).forEach(item=>{
+        const cat=CATS[item.cat]||{color:'#888'};
+        html+=`<div class="mcal-event" style="background:${cat.color}18;color:${cat.color}" data-key="${item._key}">${store.calNames[item._key]||item.name}</div>`;
+      });
+      if(extra>0) html+=`<div class="mcal-more">+${extra} more</div>`;
+    }
+    html+=`</div>`;
+    cur.setDate(cur.getDate()+1);
+  }
+  html+=`</div></div>`;
+  wrap.innerHTML=html;
+
+  document.getElementById('mcal-prev').addEventListener('click',()=>{calMonthOffset--;renderCalMonth();});
+  document.getElementById('mcal-next').addEventListener('click',()=>{calMonthOffset++;renderCalMonth();});
+  document.getElementById('cal-toggle-list-m').addEventListener('click',()=>{calViewMode='list';renderCal();});
+  document.getElementById('cal-toggle-month-m').addEventListener('click',()=>{calViewMode='month';renderCal();});
+  document.getElementById('btn-new-cal-m').addEventListener('click',openAddCal);
+
+  wrap.addEventListener('click',e=>{
+    const el=e.target.closest('[data-key]');
+    if(!el) return;
+    const key=el.dataset.key;
+    const item=allCal.find(x=>x._key===key);
+    if(!item) return;
+    const calName=(store.calNames[key]||item.name).toLowerCase();
+    const matchedOp=allOps().find(o=>calName.startsWith(getName(o.id).toLowerCase()));
+    if(matchedOp) openDetail(matchedOp.id);
+    else openCalDetail(key, allCal);
+  });
+}
+
+function renderCalList(){
+  const wrap=document.getElementById('cal-list-view');
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const allCal=buildAllCal();
 
   const sorted=[...allCal].sort((a,b)=>new Date(a.date)-new Date(b.date));
 
@@ -986,7 +1125,11 @@ function renderCal(){
 
   let html=`<div class="cal-toolbar">
     <div class="cal-title">Compliance & Regulatory Calendar · ${Object.keys(months).length} months</div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="cal-view-toggle">
+        <button class="cal-view-btn${calViewMode==='list'?' active':''}" id="cal-toggle-list">≡ List</button>
+        <button class="cal-view-btn${calViewMode==='month'?' active':''}" id="cal-toggle-month">⊞ Month</button>
+      </div>
       <button class="add-btn primary" id="btn-new-cal">+ New Event</button>
       <button class="ics-btn" id="ics-export">↓ Export All (.ics)</button>
     </div>
@@ -1024,6 +1167,8 @@ function renderCal(){
   wrap.innerHTML=html;
   document.getElementById('ics-export').addEventListener('click',exportICS);
   document.getElementById('btn-new-cal').addEventListener('click',openAddCal);
+  document.getElementById('cal-toggle-list').addEventListener('click',()=>{calViewMode='list';renderCal();});
+  document.getElementById('cal-toggle-month').addEventListener('click',()=>{calViewMode='month';renderCal();});
 
   // Single event delegation for all interactions
   wrap.addEventListener('click',e=>{
