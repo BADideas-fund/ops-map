@@ -292,11 +292,33 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
       <div class="form-2col">
         <div class="form-row">
           <label>Frequency</label>
-          <input type="text" id="new-op-freq" placeholder="e.g. Weekly, Monthly, Ad hoc"/>
+          <select id="new-op-freq">
+            <option value="Ad hoc">Ad hoc</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly" selected>Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Biannually">Biannually (every 6 months)</option>
+            <option value="Annually">Annually</option>
+            <option value="On event">On event / as needed</option>
+          </select>
         </div>
         <div class="form-row">
           <label>Owner</label>
           <input type="text" id="new-op-owner" placeholder="e.g. Zlata" value="Zlata"/>
+        </div>
+      </div>
+      <div class="form-2col" id="new-op-cal-row">
+        <div class="form-row">
+          <label>First occurrence date</label>
+          <input type="date" id="new-op-date"/>
+        </div>
+        <div class="form-row" style="justify-content:center;padding-top:22px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:500">
+            <input type="checkbox" id="new-op-add-cal" checked style="width:15px;height:15px;accent-color:#000;cursor:pointer"/>
+            Add to calendar automatically
+          </label>
         </div>
       </div>
       <div class="form-row">
@@ -1537,12 +1559,24 @@ document.getElementById('dp-cal-btn').addEventListener('click',()=>{
   if(openOpId!=null) openOpCalModal(openOpId);
 });
 
+// Frequency → RRULE mapping for calendar generation
+const FREQ_RRULE={
+  'Daily':       'FREQ=DAILY',
+  'Weekly':      'FREQ=WEEKLY',
+  'Monthly':     'FREQ=MONTHLY',
+  'Quarterly':   'FREQ=MONTHLY;INTERVAL=3',
+  'Biannually':  'FREQ=MONTHLY;INTERVAL=6',
+  'Annually':    'FREQ=YEARLY',
+};
+
 // ADD OPERATION MODAL
 function openAddOp(){
   document.getElementById('new-op-name').value='';
   document.getElementById('new-op-desc').value='';
-  document.getElementById('new-op-freq').value='';
+  document.getElementById('new-op-freq').value='Monthly';
   document.getElementById('new-op-owner').value='Zlata';
+  document.getElementById('new-op-date').value='';
+  document.getElementById('new-op-add-cal').checked=true;
   document.getElementById('add-op-modal').classList.add('open');
   setTimeout(()=>document.getElementById('new-op-name').focus(),50);
 }
@@ -1553,17 +1587,35 @@ document.getElementById('add-op-modal').addEventListener('click',e=>{if(e.target
 document.getElementById('add-op-save').addEventListener('click',()=>{
   const name=document.getElementById('new-op-name').value.trim();
   if(!name){document.getElementById('new-op-name').focus();return;}
+  const freq=document.getElementById('new-op-freq').value||'Ad hoc';
+  const dateStr=document.getElementById('new-op-date').value;
+  const addCal=document.getElementById('new-op-add-cal').checked;
   const op={
     id: nextCustomId(),
     cat: document.getElementById('new-op-cat').value,
     op: name,
-    freq: document.getElementById('new-op-freq').value||'—',
+    freq,
     owner: document.getElementById('new-op-owner').value||'Zlata',
     priority: document.getElementById('new-op-pri').value,
     status: document.getElementById('new-op-status').value,
     desc: document.getElementById('new-op-desc').value.trim(),
   };
   store.custom.push(op);
+
+  // Auto-add to calendar if date provided and checkbox on
+  if(addCal && dateStr){
+    const rrule=FREQ_RRULE[freq];
+    const cat=op.cat;
+    const notes=freq!=='Ad hoc'&&freq!=='Ongoing'&&freq!=='On event'?freq:'';
+    if(rrule){
+      generateDates(dateStr, rrule).forEach(d=>{
+        store.calCustom.push({name,date:d,audience:'Internal',cat,notes,status:''});
+      });
+    } else {
+      store.calCustom.push({name,date:dateStr,audience:'Internal',cat,notes,status:''});
+    }
+  }
+
   save(); closeAddOp();
   switchView('ops'); setActiveCat(op.cat);
   updateStats();
