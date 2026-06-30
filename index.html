@@ -1503,29 +1503,29 @@ document.getElementById('dp-cal-btn').addEventListener('click',()=>{
 
 // ADD OPERATION MODAL
 function openAddOp(){
-  document.getElementById('add-op-name').value='';
-  document.getElementById('add-op-desc').value='';
-  document.getElementById('add-op-freq').value='';
-  document.getElementById('add-op-owner').value='Zlata';
+  document.getElementById('new-op-name').value='';
+  document.getElementById('new-op-desc').value='';
+  document.getElementById('new-op-freq').value='';
+  document.getElementById('new-op-owner').value='Zlata';
   document.getElementById('add-op-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('add-op-name').focus(),50);
+  setTimeout(()=>document.getElementById('new-op-name').focus(),50);
 }
 function closeAddOp(){document.getElementById('add-op-modal').classList.remove('open');}
 document.getElementById('add-op-close').addEventListener('click',closeAddOp);
 document.getElementById('add-op-cancel').addEventListener('click',closeAddOp);
 document.getElementById('add-op-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddOp();});
 document.getElementById('add-op-save').addEventListener('click',()=>{
-  const name=document.getElementById('add-op-name').value.trim();
-  if(!name){document.getElementById('add-op-name').focus();return;}
+  const name=document.getElementById('new-op-name').value.trim();
+  if(!name){document.getElementById('new-op-name').focus();return;}
   const op={
     id: nextCustomId(),
-    cat: document.getElementById('add-op-cat').value,
+    cat: document.getElementById('new-op-cat').value,
     op: name,
-    freq: document.getElementById('add-op-freq').value||'—',
-    owner: document.getElementById('add-op-owner').value||'Zlata',
-    priority: document.getElementById('add-op-pri').value,
-    status: document.getElementById('add-op-status').value,
-    desc: document.getElementById('add-op-desc').value.trim(),
+    freq: document.getElementById('new-op-freq').value||'—',
+    owner: document.getElementById('new-op-owner').value||'Zlata',
+    priority: document.getElementById('new-op-pri').value,
+    status: document.getElementById('new-op-status').value,
+    desc: document.getElementById('new-op-desc').value.trim(),
   };
   store.custom.push(op);
   save(); closeAddOp();
