@@ -2326,8 +2326,9 @@ document.getElementById('add-cal-save').addEventListener('click',()=>{
 document.querySelectorAll('.vtab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));
 document.getElementById('search').addEventListener('input',e=>{
   q=e.target.value;
+  if(q) activeCat='all'; // search always spans all categories
   if(view==='map'&&q) switchView('ops');
-  if(view==='ops') renderOps();
+  else if(view==='ops'){renderPills();renderOps();}
 });
 
 
