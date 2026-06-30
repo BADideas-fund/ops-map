@@ -120,10 +120,12 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 .cal-empty{color:var(--text2);font-size:13px;padding:12px 8px}
 .cal-add{font-size:10.5px;font-weight:600;padding:3px 9px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .12s}
 .cal-add:hover{background:var(--bg);border-color:#aaa;color:var(--text)}
-.cal-d-btn{font-family:'Inter',-apple-system,sans-serif;font-size:12px;font-weight:700;width:44px;flex-shrink:0;padding-top:1px;cursor:pointer;background:none;border:none;text-align:left;color:var(--text);padding:2px 4px;border-radius:2px;transition:background .1s;line-height:1.4}
-.cal-d-btn:hover{background:var(--bg)}
+.cal-d-btn{font-family:'Inter',-apple-system,sans-serif;font-size:12px;font-weight:700;width:44px;flex-shrink:0;text-align:left;color:var(--text);padding:2px 4px;line-height:1.4;user-select:none}
 .cal-past .cal-d-btn{color:var(--text2)}
 .cal-past{opacity:.52}
+.cal-body-click{cursor:pointer;transition:background .1s;flex:1;min-width:0}
+.cal-body-click:hover .cal-name{text-decoration:underline;text-decoration-color:var(--border)}
+.cal-op-tag{display:inline-block;font-size:10px;font-weight:600;margin-top:3px;opacity:.75}
 .cal-status-btn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;padding:3px 8px;border:1px solid;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .12s;user-select:none}
 .cst-none{background:#F9FAFB;color:#9CA3AF;border-color:#E5E7EB}
 .cst-none:hover{background:#F3F4F6;border-color:#D1D5DB;color:#6B7280}
@@ -131,7 +133,6 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 .cst-prog:hover{background:#BFDBFE}
 .cst-done{background:#D1FAE5;color:#065F46;border-color:#A7F3D0}
 .cst-done:hover{background:#A7F3D0}
-.cal-date-picker{position:fixed;z-index:600;border:1px solid #9CA3AF;padding:6px 8px;font-size:13px;font-family:inherit;background:#fff;box-shadow:0 4px 16px rgba(12,20,32,.15);outline:none}
 
 /* DETAIL PANEL */
 .dovlay{position:fixed;inset:0;background:rgba(12,20,32,.35);z-index:190;display:none}
@@ -772,6 +773,9 @@ if(!store.custom)    store.custom=[];   // [{id,cat,op,freq,owner,priority,statu
 if(!store.calCustom)  store.calCustom=[];  // [{name,date,audience,cat,notes}]
 if(!store.calStatus)  store.calStatus={};  // {key: 'Done'|'In progress'|''}
 if(!store.calDate)    store.calDate={};    // {key: 'YYYY-MM-DD'} — date overrides
+if(!store.calDesc)    store.calDesc={};    // {key: string} — cal item description overrides
+if(!store.calProf)    store.calProf={};    // {key: string} — cal item proficiency
+if(!store.calNames)   store.calNames={};   // {key: string} — cal item name overrides
 if(!store.priority)   store.priority={};   // {id: 'High'|'Medium'|'Low'} — priority overrides
 if(!store.opStatus)   store.opStatus={};   // {id: ''|'In progress'|'Done'} — op status overrides
 function save(){localStorage.setItem('badi_v2',JSON.stringify(store))}
@@ -967,12 +971,12 @@ function renderCal(){
       const matchedOp=allOps().find(o=>getName(o.id).toLowerCase()===item.name.toLowerCase());
       const pastCls=days<0?' cal-past':'';
       html+=`<div class="cal-row${pastCls}" data-key="${item._key}">
-        <button class="cal-d-btn" data-key="${item._key}" data-act="date" title="Click to edit date">${dayStr}</button>
+        <div class="cal-d-btn">${dayStr}</div>
         <div class="cal-stripe" style="background:${cat.color}"></div>
-        <div class="cal-body">
-          <div class="cal-name">${item.name}</div>
+        <div class="cal-body cal-body-click" data-act="opencal" data-key="${item._key}" title="Open details">
+          <div class="cal-name">${store.calNames[item._key]||item.name}</div>
           <div class="cal-sub">${item.audience||''}${item.notes?' · '+item.notes:''}</div>
-          ${matchedOp?`<span class="cal-op-link" data-act="openop" data-opid="${matchedOp.id}">↗ Open operation</span>`:''}
+          ${matchedOp?`<span class="cal-op-tag" style="color:${cat.color}">↗ Has operation</span>`:''}
         </div>
         ${statusHtml(item._key,item._status)}
         ${urg}
@@ -1000,36 +1004,140 @@ function renderCal(){
       save(); renderCal();
     }
 
-    if(act==='date'){
+    if(act==='opencal'){
       const item=allCal.find(x=>x._key===key);
       if(!item) return;
-      const rect=btn.getBoundingClientRect();
-      const inp=document.createElement('input');
-      inp.type='date'; inp.className='cal-date-picker';
-      inp.value=item.date;
-      inp.style.top=(rect.bottom+4)+'px';
-      inp.style.left=rect.left+'px';
-      document.body.appendChild(inp);
-      inp.focus();
-      inp.showPicker?.();
-      const apply=()=>{
-        if(inp.value&&inp.value!==item._origDate){store.calDate[key]=inp.value;save();}
-        inp.remove(); renderCal();
-      };
-      inp.addEventListener('change',apply);
-      inp.addEventListener('blur',()=>setTimeout(()=>{if(document.body.contains(inp)){inp.remove();renderCal();}},150));
-    }
-
-    if(act==='ics'){
-      const item=sorted.find(x=>x._key===key);
-      if(item) addOneToCalendar(item);
+      const matchedOp=allOps().find(o=>getName(o.id).toLowerCase()===(store.calNames[key]||item.name).toLowerCase());
+      if(matchedOp){ openDetail(matchedOp.id); return; }
+      openCalDetail(key, allCal);
     }
 
     if(act==='openop'){
       const opid=parseInt(btn.dataset.opid);
       if(!isNaN(opid)) openDetail(opid);
     }
+
+    if(act==='ics'){
+      const item=sorted.find(x=>x._key===key);
+      if(item) addOneToCalendar(item);
+    }
   });
+}
+
+// CALENDAR ITEM DETAIL PANEL
+let openCalKey=null;
+function openCalDetail(key, allCalItems){
+  openCalKey=key;
+  openOpId=null;
+  const item=allCalItems.find(x=>x._key===key);
+  if(!item) return;
+
+  const cat=CATS[item.cat]||CATS['compliance'];
+  const badge=document.getElementById('dp-badge');
+  badge.textContent=cat.label;
+  badge.style.background=cat.color+'18';
+  badge.style.color=cat.color;
+
+  // Name — editable, stored in store.calNames[key]
+  const nameEl=document.getElementById('dp-name');
+  nameEl.textContent=store.calNames[key]||item.name;
+  nameEl.oninput=()=>{
+    const v=nameEl.textContent.trim();
+    if(v&&v!==item.name) store.calNames[key]=v; else delete store.calNames[key];
+    save();
+  };
+
+  // Fields: date (editable), audience, notes
+  const curDate=store.calDate[key]||item.date||'';
+  const fields=document.getElementById('dp-fields');
+  fields.innerHTML=`
+    <div class="dp-field" style="grid-column:1/-1">
+      <div class="dp-fl">Date <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text2);margin-left:4px">(click to edit)</span></div>
+      <div class="dp-fv"><input type="date" id="dp-cal-date" value="${curDate}" style="font-family:inherit;font-size:13px;border:1px solid var(--border);padding:4px 8px;background:var(--surface);color:var(--text);cursor:pointer;outline:none;width:160px"></div>
+    </div>
+    <div class="dp-field"><div class="dp-fl">Audience</div><div class="dp-fv">${item.audience||'—'}</div></div>
+    <div class="dp-field"><div class="dp-fl">Notes</div><div class="dp-fv">${item.notes||'—'}</div></div>
+    <div class="dp-field" style="grid-column:1/-1">
+      <div class="dp-fl">Status <span style="font-size:9px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text2);margin-left:4px">(click to change)</span></div>
+      <div id="dp-cal-status-wrap" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px"></div>
+    </div>
+  `;
+
+  // Date change handler
+  document.getElementById('dp-cal-date').addEventListener('change',e=>{
+    if(e.target.value) store.calDate[key]=e.target.value;
+    else delete store.calDate[key];
+    save(); renderCal();
+  });
+
+  // Status buttons
+  const wrap=document.getElementById('dp-cal-status-wrap');
+  const curSt=store.calStatus.hasOwnProperty(key)?store.calStatus[key]:(item._status||'');
+  ['Not started','In progress','Done'].forEach(s=>{
+    const b=document.createElement('button');
+    b.className='dp-pribtn'+(curSt===s||(!curSt&&s==='Not started')?' active':'');
+    b.style.cssText=s==='Done'?'background:#D1FAE5;color:#065F46;border-color:#6EE7B7':
+                    s==='In progress'?'background:#DBEAFE;color:#1E3A8A;border-color:#93C5FD':
+                    'background:#F8F9FC;color:#9CA3AF;border-color:#E2E5EF';
+    b.textContent=s;
+    b.addEventListener('click',()=>{
+      store.calStatus[key]=s==='Not started'?'':s;
+      save(); renderCal();
+      wrap.querySelectorAll('.dp-pribtn').forEach(x=>x.classList.toggle('active',x.textContent===s));
+    });
+    wrap.appendChild(b);
+  });
+
+  // Description
+  const descEl=document.getElementById('dp-desc');
+  descEl.textContent=store.calDesc[key]||'';
+  let descTimer;
+  descEl.oninput=()=>{
+    clearTimeout(descTimer);
+    descTimer=setTimeout(()=>{store.calDesc[key]=descEl.textContent.trim();save();},600);
+  };
+
+  // Notes
+  const notesEl=document.getElementById('dp-notes');
+  notesEl.value=store.notes['cal-'+key]||'';
+  const saveHint=document.getElementById('dp-saved');
+  let saveTimer;
+  notesEl.oninput=()=>{
+    clearTimeout(saveTimer);
+    saveHint.textContent='Saving…';
+    saveTimer=setTimeout(()=>{
+      store.notes['cal-'+key]=notesEl.value;
+      save();
+      saveHint.textContent='Saved ✓';
+      setTimeout(()=>{saveHint.textContent='';},2000);
+    },600);
+  };
+
+  // Remove any lingering delete button
+  const existing=document.getElementById('dp-delete');
+  if(existing) existing.remove();
+
+  // Proficiency
+  const profEl=document.getElementById('dp-prof');
+  const cur=store.calProf[key]||'—';
+  profEl.innerHTML=PC.filter(p=>p!=='—').map(p=>{
+    const ps=PS[p];
+    const active=cur===p;
+    return `<button class="dp-pbtn${active?' active':''}" data-p="${p}" style="background:${ps.bg};color:${ps.color};border-color:${ps.bd}">${p}</button>`;
+  }).join('');
+  profEl.querySelectorAll('.dp-pbtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      store.calProf[key]=btn.dataset.p;
+      save();
+      profEl.querySelectorAll('.dp-pbtn').forEach(b=>b.classList.toggle('active',b.dataset.p===btn.dataset.p));
+    });
+  });
+
+  // Hide "+ Calendar" button — not applicable for calendar items
+  document.getElementById('dp-cal-btn').style.display='none';
+
+  document.getElementById('dpanel').classList.add('open');
+  document.getElementById('dovlay').classList.add('open');
 }
 
 // SINGLE EVENT ICS
@@ -1097,6 +1205,8 @@ function switchView(v){
 // DETAIL PANEL
 function openDetail(id){
   openOpId=id;
+  openCalKey=null;
+  document.getElementById('dp-cal-btn').style.display='';
   const o=OPS.find(x=>x.id===id);
   const cat=CATS[o.cat];
   const badge=document.getElementById('dp-badge');
