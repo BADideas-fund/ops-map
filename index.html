@@ -162,6 +162,16 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 .dp-pbtn:hover{opacity:.8}
 .dp-pbtn.active{outline:2px solid var(--text);outline-offset:2px}
 .hidden{display:none!important}
+/* LOCK SCREEN */
+#lockscreen{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+.lock-box{display:flex;flex-direction:column;align-items:center;gap:24px;width:320px}
+.lock-logo{font-family:'Inter',-apple-system,sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em}
+.lock-sub{font-size:12px;color:#5A5A5A;letter-spacing:.08em;text-transform:uppercase;font-family:'Courier New',monospace;margin-top:-16px}
+.lock-input{width:100%;padding:13px 16px;font-size:15px;font-family:'Inter',-apple-system,sans-serif;background:#111;border:1px solid #333;color:#fff;outline:none;letter-spacing:.06em;transition:border-color .15s}
+.lock-input:focus{border-color:var(--accent)}
+.lock-btn{width:100%;padding:13px;font-size:14px;font-weight:700;font-family:'Inter',-apple-system,sans-serif;background:var(--accent);color:#000;border:none;cursor:pointer;letter-spacing:.04em;transition:filter .12s}
+.lock-btn:hover{filter:brightness(.92)}
+.lock-err{font-size:12px;color:#F87171;font-family:'Courier New',monospace;letter-spacing:.06em;min-height:18px;text-align:center}
 /* PRIORITY SELECTOR */
 .dp-pri-grid{display:flex;gap:6px;flex-wrap:wrap}
 .dp-pribtn{font-size:11px;font-weight:700;padding:5px 14px;border:1px solid;cursor:pointer;font-family:inherit;letter-spacing:.04em;text-transform:uppercase;transition:all .12s}
@@ -201,6 +211,19 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+
+<!-- LOCK SCREEN -->
+<div id="lockscreen">
+  <div class="lock-box">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:8px">
+      <div class="lock-logo">BADideas.fund</div>
+      <div class="lock-sub">Operations World Map</div>
+    </div>
+    <input class="lock-input" id="lock-input" type="password" placeholder="Enter password" autocomplete="current-password"/>
+    <button class="lock-btn" id="lock-btn">Enter</button>
+    <div class="lock-err" id="lock-err"></div>
+  </div>
+</div>
 
 <!-- Overlay + Detail Panel -->
 <div id="dovlay" class="dovlay"></div>
@@ -423,6 +446,35 @@ body{font-family:'Inter',-apple-system,'Helvetica Neue',Arial,sans-serif;backgro
 <div id="cal-view" class="hidden"></div>
 
 <script>
+// PASSWORD LOCK
+const PW_HASH='579489623fbc531e6a319c91ff4b9df93bac57ce528124fac94e5fb41c05fcf6';
+async function hashStr(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function tryUnlock(){
+  const val=document.getElementById('lock-input').value;
+  const h=await hashStr(val);
+  if(h===PW_HASH){
+    sessionStorage.setItem('badi_auth','1');
+    document.getElementById('lockscreen').style.display='none';
+    pullFromCloud();
+  } else {
+    document.getElementById('lock-err').textContent='Incorrect password';
+    document.getElementById('lock-input').value='';
+    document.getElementById('lock-input').focus();
+  }
+}
+document.getElementById('lock-btn').addEventListener('click',tryUnlock);
+document.getElementById('lock-input').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlock();});
+// Check session
+if(sessionStorage.getItem('badi_auth')==='1'){
+  document.getElementById('lockscreen').style.display='none';
+} else {
+  // Hide main content until unlocked — focus the input
+  setTimeout(()=>document.getElementById('lock-input').focus(),100);
+}
+
 // JSONBIN SYNC
 const JBIN_ID  = '6a43652df5f4af5e2945d7b3';
 const JBIN_KEY = '$2a$10$Jh89FPjNxAvRNMr5Df6RNuiVSYJzLj2FQUjZ.w/tDg8O/dE0Hl5Fe';
@@ -482,8 +534,10 @@ async function pullFromCloud(){
 
 document.getElementById('sync-btn').addEventListener('click', pushToCloud);
 
-// Pull from cloud on load
-window.addEventListener('load', pullFromCloud);
+// Pull from cloud on load only if already authenticated
+window.addEventListener('load', ()=>{
+  if(sessionStorage.getItem('badi_auth')==='1') pullFromCloud();
+});
 
 const CATS={
   finance:   {label:'Finance & Accounting',     short:'Finance',      color:'#1E48C2'},
