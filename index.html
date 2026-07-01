@@ -1399,8 +1399,11 @@ function daysUntil(dateStr){
 }
 
 function buildAllCal(){
+  // When an op has custom cal entries (user changed day/freq), suppress the original hardcoded CAL entries for that op
+  const overriddenNames=new Set(store.calCustom.map(c=>c.name.toLowerCase()));
+  const filteredCAL=CAL.filter(item=>!overriddenNames.has(item.name.toLowerCase()));
   return [
-    ...CAL.map((item,i)=>({...item,_key:'cal-'+i,_origDate:item.date})),
+    ...filteredCAL.map((item,i)=>({...item,_key:'cal-'+i,_origDate:item.date})),
     ...store.calCustom.map((item,i)=>({...item,_key:'cust-'+i,_origDate:item.date}))
   ].map(item=>({
     ...item,
@@ -1903,7 +1906,7 @@ function openDetail(id){
     const wrap=document.getElementById('dp-deadline-box-wrap');
     // First: look up the nearest upcoming calendar entry for this op
     const opName=getName(id);
-    const allCal=[...CAL,...store.calCustom];
+    const allCal=buildAllCal();
     const now=TODAY;
     const calEntry=allCal
       .filter(c=>c.date&&c.name.toLowerCase().startsWith(opName.toLowerCase())&&new Date(c.date)>=now)
