@@ -814,6 +814,8 @@ const OPS=[
    desc:'Annual audited report submitted to Altum and the Bank of Latvia. Covers full-year fund operations and financials. Coordinate with BADideas OÜ audit timeline.'},
   {id:88,cat:'compliance', op:'High risk LP review',               freq:'Annual (February)',  owner:'Rainers',        priority:'High',   status:'',
    desc:'Annual review of all LPs classified as high risk under the AML framework. Document review findings and update risk classifications as needed.'},
+  {id:89,cat:'finance', op:'Pārvaldības maksas rēķins (Bad Company → BIFI)', freq:'Quarterly (last day of quarter)', owner:'Zlata', priority:'High', status:'',
+   desc:'Izrakstīt pārvaldības maksas rēķinu no Bad Company AIFP SIA uz BIFI AIF KS par pārvaldības maksu. Rēķinu izraksta katra ceturkšņa pēdējā dienā (31. martā, 30. jūnijā, 30. septembrī, 31. decembrī). Pārliecināties, ka rēķina numurs, summa un periods atbilst noslēgtajam pārvaldības līgumam.'},
 
   {id:57,cat:'team', op:'Team weekly standups', freq:'Weekly', owner:'Zlata', priority:'High', status:'',
    desc:'Attend the weekly all-team standup meeting. Meeting notes are automatically generated and distributed after the session. Review the notes and follow up on any action items assigned during the meeting to ensure they are completed before the next standup.'},
@@ -904,6 +906,10 @@ const CAL=[
   {name:'LP alignment call with Ben',               date:'2027-01-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
   {name:'LP alignment call with Ben',               date:'2027-04-12',audience:'Ben, Zlata', cat:'lp',         status:'',     notes:'Align on portfolio updates before LP Q Report'},
   // Monthly recurring — Finance
+  {name:'Pārvaldības maksas rēķins (Bad Company → BIFI)', date:'2026-06-30',audience:'Internal',cat:'finance',status:'',notes:'Q2 rēķins — Bad Company AIFP SIA → BIFI AIF KS'},
+  {name:'Pārvaldības maksas rēķins (Bad Company → BIFI)', date:'2026-09-30',audience:'Internal',cat:'finance',status:'',notes:'Q3 rēķins — Bad Company AIFP SIA → BIFI AIF KS'},
+  {name:'Pārvaldības maksas rēķins (Bad Company → BIFI)', date:'2026-12-31',audience:'Internal',cat:'finance',status:'',notes:'Q4 rēķins — Bad Company AIFP SIA → BIFI AIF KS'},
+  {name:'Pārvaldības maksas rēķins (Bad Company → BIFI)', date:'2027-03-31',audience:'Internal',cat:'finance',status:'',notes:'Q1 2027 rēķins — Bad Company AIFP SIA → BIFI AIF KS'},
   {name:'Monthly closing',    date:'2026-07-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
   {name:'Monthly budget files',date:'2026-07-05',audience:'Internal',cat:'finance',status:'',notes:'Update Bad Company + BIFI budget files'},
   {name:'Monthly closing',    date:'2026-08-05',audience:'Internal',cat:'finance',status:'',notes:'Download Swedbank statements, match transactions, ensure >€15k balance'},
